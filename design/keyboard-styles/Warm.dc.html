@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700&amp;family=Noto+Serif+TC:wght@600;700&amp;display=swap">
+  <style>
+    body { margin: 0; background: #1b1613; font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+    a { color: #e2583e; } a:hover { color: #f07a62; }
+    .kb { width: 780px; height: 355px; box-sizing: border-box; padding: 3px; background: #1b1613; display: flex; flex-direction: column; overflow: hidden; color: #f3e9dc; }
+    .strip { height: 50px; box-sizing: border-box; padding: 2px; display: flex; gap: 4px; align-items: stretch; }
+    .comp { display: flex; flex-direction: column; justify-content: center; padding: 0 12px; border-radius: 7px; background: #2a221d; max-width: 225px; }
+    .comp-top { display: flex; font-family: "Noto Serif TC", "Songti TC", "PMingLiU", serif; font-size: 20px; line-height: 23px; font-weight: 700; }
+    .comp-sub { font-size: 13px; line-height: 16px; color: #bfae98; letter-spacing: 1.5px; }
+    .cands { flex: 1 1 0; display: flex; gap: 4px; align-items: stretch; overflow: hidden; }
+    .cand { display: flex; align-items: center; padding: 0 14px; font-family: "Noto Serif TC", "Songti TC", "PMingLiU", serif; font-size: 23px; font-weight: 600; border-radius: 7px; }
+    .cand-first { color: var(--accent); font-weight: 700; }
+    .icon-btn { width: 66px; display: flex; align-items: center; justify-content: center; border-radius: 7px; background: #27201b; }
+    .body { height: 295px; display: flex; }
+    .main { flex: 11 1 0; box-sizing: border-box; padding: 2px; display: flex; flex-direction: column; gap: 4px; }
+    .side { flex: 1.6 1 0; box-sizing: border-box; padding: 2px; display: flex; flex-direction: column; gap: 4px; }
+    .row { height: 55px; display: grid; gap: 4px; }
+    /* 下緣加深一點，做出鍵帽的厚度 */
+    .k { display: flex; align-items: center; justify-content: center; border-radius: 7px; background: #342b25; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.35); font-family: "Noto Serif TC", "Songti TC", "PMingLiU", serif; font-size: 23px; font-weight: 600; }
+    .tone { font-size: 32px; line-height: 1; }
+    .fn { font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-size: 18px; font-weight: 500; }
+    .sp { background: #27201b; color: #d9cbb8; }
+    .pr { background: #4c4037; box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.35); }
+    .ac { background: var(--accent); color: #fff7ec; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.22); }
+    svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  </style>
+</helmet>
+<div class="kb" style="--accent: {{accent}}">
+  <div class="strip">
+    <div class="comp">
+      <div class="comp-top"><span style="color: {{accent}}">打</span><span>家</span></div>
+      <div class="comp-sub">ㄐㄧㄚ</div>
+    </div>
+    <div class="cands">
+      <div class="cand cand-first">家</div>
+      <div class="cand">加</div>
+      <div class="cand">架</div>
+      <div class="cand">假</div>
+      <div class="cand">價</div>
+    </div>
+    <div class="icon-btn"><svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg></div>
+    <div class="icon-btn"><svg viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"></path></svg></div>
+  </div>
+  <div class="body">
+    <div class="main">
+      <div class="row" style="grid-template-columns: repeat(11, minmax(0, 1fr))">
+        <div class="k">ㄅ</div><div class="k">ㄉ</div><div class="k tone">ˇ</div><div class="k tone">ˋ</div><div class="k">ㄓ</div><div class="k tone">ˊ</div><div class="k tone">˙</div><div class="k pr">ㄚ</div><div class="k">ㄞ</div><div class="k">ㄢ</div><div class="k">ㄦ</div>
+      </div>
+      <div class="row" style="grid-template-columns: repeat(10, minmax(0, 1fr))">
+        <div class="k">ㄆ</div><div class="k">ㄊ</div><div class="k">ㄍ</div><div class="k">ㄐ</div><div class="k">ㄔ</div><div class="k">ㄗ</div><div class="k">ㄧ</div><div class="k">ㄛ</div><div class="k">ㄟ</div><div class="k">ㄣ</div>
+      </div>
+      <div class="row" style="grid-template-columns: repeat(10, minmax(0, 1fr))">
+        <div class="k">ㄇ</div><div class="k">ㄋ</div><div class="k">ㄎ</div><div class="k">ㄑ</div><div class="k">ㄕ</div><div class="k">ㄘ</div><div class="k">ㄨ</div><div class="k">ㄜ</div><div class="k">ㄠ</div><div class="k">ㄤ</div>
+      </div>
+      <div class="row" style="grid-template-columns: repeat(10, minmax(0, 1fr))">
+        <div class="k">ㄈ</div><div class="k">ㄌ</div><div class="k">ㄏ</div><div class="k">ㄒ</div><div class="k">ㄖ</div><div class="k">ㄙ</div><div class="k">ㄩ</div><div class="k">ㄝ</div><div class="k">ㄡ</div><div class="k">ㄥ</div>
+      </div>
+      <div class="row" style="grid-template-columns: 1.5fr 1.5fr 1.2fr 1.2fr 3.6fr 1fr 1fr">
+        <div class="k sp fn">123</div>
+        <div class="k sp"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3c-2.5 2.6-3.8 5.6-3.8 9s1.3 6.4 3.8 9M3.5 9h17M3.5 15h17"></path></svg></div>
+        <div class="k sp"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"></path></svg></div>
+        <div class="k sp"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M8.5 14.5c.9 1.2 2.1 1.8 3.5 1.8s2.6-.6 3.5-1.8M9 10h.01M15 10h.01"></path></svg></div>
+        <div class="k fn" style="color: #bfae98">注音</div>
+        <div class="k">，</div>
+        <div class="k">。</div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="k sp" style="height: 55px"><svg viewBox="0 0 24 24"><path d="M9 5h11a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H9l-6-7z"></path><path d="M12 9.5l5 5M17 9.5l-5 5"></path></svg></div>
+      <div class="k ac" style="height: 114px"><svg viewBox="0 0 24 24"><path d="M19 5v7a3 3 0 0 1-3 3H6"></path><path d="M9.5 11.5L6 15l3.5 3.5"></path></svg></div>
+      <div class="k sp fn" style="height: 55px">切換</div>
+      <div class="k sp fn" style="height: 55px">收起</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#e2583e","options":["#e2583e","#d9a441","#5fa37a"]}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#e2583e' };
+  }
+}
+</script>
+</body>
+</html>

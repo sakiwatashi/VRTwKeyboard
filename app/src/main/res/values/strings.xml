@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">智慧優先注音 Quest 原型</string>
+    <string name="ime_name">智慧優先注音（Quest 原型）</string>
+    <string name="subtype_label">注音</string>
+</resources>

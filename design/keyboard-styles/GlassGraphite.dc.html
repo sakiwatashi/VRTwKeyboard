@@ -1,0 +1,137 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700&amp;family=Noto+Serif+TC:wght@600;700&amp;display=swap">
+  <style>
+    body { margin: 0; background: #2b2724; font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+    a { color: #e9ddcf; } a:hover { color: #ffffff; }
+    /* 代表頭盔透視畫面裡的房間，面板用毛玻璃透出來 */
+    .room { width: 780px; height: 355px; position: relative; }
+    .kb {
+      position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+      box-sizing: border-box; padding: 5px;
+      display: flex; flex-direction: column; overflow: hidden; color: var(--text);
+      border-radius: 24px;
+      backdrop-filter: blur(22px) saturate(1.2);
+      -webkit-backdrop-filter: blur(22px) saturate(1.2);
+      box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    }
+    .strip { height: 50px; box-sizing: border-box; padding: 2px; display: flex; gap: 4px; align-items: stretch; }
+    /* 圓角跟面板同心：面板 24、內距 5，內層就是 19 再扣 2 */
+    .comp { display: flex; flex-direction: column; justify-content: center; padding: 0 14px; border-radius: 17px; background: rgba(0, 0, 0, 0.16); max-width: 225px; }
+    .comp-top { display: flex; font-family: var(--key-font); font-size: 19px; line-height: 22px; font-weight: 700; }
+    .fixed { color: color-mix(in srgb, var(--accent) 80%, var(--text)); }
+    .comp-sub { font-size: 13px; line-height: 16px; color: color-mix(in srgb, var(--text) 62%, transparent); letter-spacing: 1.5px; }
+    .cands { flex: 1 1 0; display: flex; gap: 4px; align-items: stretch; overflow: hidden; }
+    .cand { display: flex; align-items: center; padding: 0 16px; font-family: var(--key-font); font-size: 22px; font-weight: 600; border-radius: 999px; }
+    .cand-first { color: color-mix(in srgb, var(--accent) 72%, var(--text)); background: color-mix(in srgb, var(--accent) 18%, transparent); font-weight: 700; }
+    .icon-btn { width: 58px; display: flex; align-items: center; justify-content: center; border-radius: 999px; background: rgba(var(--key-rgb), 0.06); }
+    .body { height: 295px; display: flex; }
+    .main { flex: 11 1 0; box-sizing: border-box; padding: 2px; display: flex; flex-direction: column; gap: 4px; }
+    .side { flex: 1.6 1 0; box-sizing: border-box; padding: 2px; display: flex; flex-direction: column; gap: 4px; }
+    .row { height: 55px; display: grid; gap: 4px; }
+    .k {
+      display: flex; align-items: center; justify-content: center; border-radius: 16px;
+      background: rgba(var(--key-rgb), 0.085);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 1px 2px rgba(0, 0, 0, 0.12);
+      font-family: var(--key-font); font-size: 22px; font-weight: 600;
+    }
+    /* 聲調符號本身很小，放大才看得清楚 */
+    .tone { font-size: 32px; line-height: 1; }
+    .fn { font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-size: 18px; font-weight: 500; }
+    .sp { background: rgba(var(--key-rgb), 0.045); color: color-mix(in srgb, var(--text) 85%, transparent); }
+    .label-dim { color: color-mix(in srgb, var(--text) 65%, transparent); }
+    .pr { background: rgba(var(--key-rgb), 0.22); }
+    .ac { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 88%, #ffffff), var(--accent)); color: var(--accent-text); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28); }
+    svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  </style>
+</helmet>
+<div class="room" style="position: relative; {{roomStyle}}">
+  <div class="kb" style="position: absolute; {{kbStyle}}">
+    <div class="strip">
+      <div class="comp">
+        <div class="comp-top"><span class="fixed">打</span><span>家</span></div>
+        <div class="comp-sub">ㄐㄧㄚ</div>
+      </div>
+      <div class="cands">
+        <div class="cand cand-first">家</div>
+        <div class="cand">加</div>
+        <div class="cand">架</div>
+        <div class="cand">假</div>
+        <div class="cand">價</div>
+      </div>
+      <div class="icon-btn"><svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg></div>
+      <div class="icon-btn"><svg viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"></path></svg></div>
+    </div>
+    <div class="body">
+      <div class="main">
+        <div class="row" style="grid-template-columns: repeat(11, minmax(0, 1fr))">
+          <div class="k">ㄅ</div><div class="k">ㄉ</div><div class="k tone">ˇ</div><div class="k tone">ˋ</div><div class="k">ㄓ</div><div class="k tone">ˊ</div><div class="k tone">˙</div><div class="k pr">ㄚ</div><div class="k">ㄞ</div><div class="k">ㄢ</div><div class="k">ㄦ</div>
+        </div>
+        <div class="row" style="grid-template-columns: repeat(10, minmax(0, 1fr))">
+          <div class="k">ㄆ</div><div class="k">ㄊ</div><div class="k">ㄍ</div><div class="k">ㄐ</div><div class="k">ㄔ</div><div class="k">ㄗ</div><div class="k">ㄧ</div><div class="k">ㄛ</div><div class="k">ㄟ</div><div class="k">ㄣ</div>
+        </div>
+        <div class="row" style="grid-template-columns: repeat(10, minmax(0, 1fr))">
+          <div class="k">ㄇ</div><div class="k">ㄋ</div><div class="k">ㄎ</div><div class="k">ㄑ</div><div class="k">ㄕ</div><div class="k">ㄘ</div><div class="k">ㄨ</div><div class="k">ㄜ</div><div class="k">ㄠ</div><div class="k">ㄤ</div>
+        </div>
+        <div class="row" style="grid-template-columns: repeat(10, minmax(0, 1fr))">
+          <div class="k">ㄈ</div><div class="k">ㄌ</div><div class="k">ㄏ</div><div class="k">ㄒ</div><div class="k">ㄖ</div><div class="k">ㄙ</div><div class="k">ㄩ</div><div class="k">ㄝ</div><div class="k">ㄡ</div><div class="k">ㄥ</div>
+        </div>
+        <div class="row" style="grid-template-columns: 1.5fr 1.5fr 1.2fr 1.2fr 3.6fr 1fr 1fr">
+          <div class="k sp fn">123</div>
+          <div class="k sp"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3c-2.5 2.6-3.8 5.6-3.8 9s1.3 6.4 3.8 9M3.5 9h17M3.5 15h17"></path></svg></div>
+          <div class="k sp"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"></path></svg></div>
+          <div class="k sp"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M8.5 14.5c.9 1.2 2.1 1.8 3.5 1.8s2.6-.6 3.5-1.8M9 10h.01M15 10h.01"></path></svg></div>
+          <div class="k fn label-dim">注音</div>
+          <div class="k">，</div>
+          <div class="k">。</div>
+        </div>
+      </div>
+      <div class="side">
+        <div class="k sp" style="height: 55px"><svg viewBox="0 0 24 24"><path d="M9 5h11a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H9l-6-7z"></path><path d="M12 9.5l5 5M17 9.5l-5 5"></path></svg></div>
+        <div class="k ac" style="height: 114px"><svg viewBox="0 0 24 24"><path d="M19 5v7a3 3 0 0 1-3 3H6"></path><path d="M9.5 11.5L6 15l3.5 3.5"></path></svg></div>
+        <div class="k sp fn" style="height: 55px">切換</div>
+        <div class="k sp fn" style="height: 55px">收起</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"theme":{"editor":"enum","options":["暖茶","抹茶","靛夜","霧櫻","石墨金","無彩"],"default":"石墨金"},"panelOpacity":{"editor":"range","default":0.5,"min":0.35,"max":0.9,"step":0.01},"keyFont":{"editor":"enum","options":["黑體","明體"],"default":"黑體"}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // 每套配色只換顏色：面板底色、字色、按鍵色、重點色，以及示意用的房間背景
+    const themes = {
+      '暖茶': { tint: '38, 28, 22', text: '#e9ddcf', key: '255, 244, 232', accent: '#de6a52', accentText: '#fff3ea', room: ['#a38a70', '#6b5a4d', '#5a4c42', '#3e3631'] },
+      '抹茶': { tint: '24, 34, 28', text: '#dde6d8', key: '236, 248, 236', accent: '#93bd7f', accentText: '#15201a', room: ['#7f9474', '#4f5f52', '#465246', '#2f3831'] },
+      '靛夜': { tint: '22, 26, 44', text: '#dce1f0', key: '232, 238, 255', accent: '#86a2ec', accentText: '#111628', room: ['#6f7aa3', '#4a4f6b', '#3f4460', '#2a2d40'] },
+      '霧櫻': { tint: '44, 28, 34', text: '#eedde1', key: '255, 238, 242', accent: '#d98ca0', accentText: '#2a141a', room: ['#a88a92', '#6e5a60', '#5c4a50', '#3e3236'] },
+      '石墨金': { tint: '30, 30, 32', text: '#e2e0da', key: '245, 244, 240', accent: '#cfa965', accentText: '#231c10', room: ['#8a8780', '#5a5956', '#4a4946', '#333331'] },
+      // 完全沒有色相：Enter 和第一候選靠亮灰與粗體區分，不靠顏色
+      '無彩': { tint: '26, 26, 26', text: '#e6e6e6', key: '255, 255, 255', accent: '#d6d6d6', accentText: '#161616', room: ['#8c8c8c', '#5a5a5a', '#4a4a4a', '#303030'] }
+    };
+    const t = themes[this.props.theme] ?? themes['暖茶'];
+    const opacity = this.props.panelOpacity ?? 0.5;
+    const serif = (this.props.keyFont ?? '黑體') === '明體';
+    const font = serif
+      ? "'Noto Serif TC', 'Songti TC', 'PMingLiU', serif"
+      : "'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif";
+    return {
+      roomStyle: 'background: radial-gradient(circle at 20% 25%, ' + t.room[0] + ' 0%, transparent 45%), '
+        + 'radial-gradient(circle at 80% 75%, ' + t.room[1] + ' 0%, transparent 50%), '
+        + 'linear-gradient(160deg, ' + t.room[2] + ', ' + t.room[3] + ')',
+      kbStyle: '--accent: ' + t.accent + '; --accent-text: ' + t.accentText + '; --text: ' + t.text
+        + '; --key-rgb: ' + t.key + '; --key-font: ' + font
+        + '; background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 40%), rgba(' + t.tint + ', ' + opacity + ')'
+    };
+  }
+}
+</script>
+</body>
+</html>
