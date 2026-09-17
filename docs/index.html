@@ -131,7 +131,8 @@ const bar = document.getElementById("bar");
 function log(line, cls) {
   const span = document.createElement("div");
   if (cls) span.className = cls;
-  span.textContent = line;
+  const time = new Date().toTimeString().slice(0, 8) + "." + String(new Date().getMilliseconds()).padStart(3, "0");
+  span.textContent = "[" + time + "] " + line;
   logEl.appendChild(span);
   logEl.scrollTop = logEl.scrollHeight;
 }
@@ -144,6 +145,16 @@ if (!("usb" in navigator)) {
   document.getElementById("unsupported").style.display = "block";
   installBtn.disabled = true;
   statusEl.textContent = "這個瀏覽器沒有 WebUSB，無法安裝。";
+} else {
+  // 全程監控 USB 插拔，不管有沒有在跑安裝流程都會印出來。
+  // 這樣頭盔中途斷線（例如進入待機）或被別的程式搶走介面時，
+  // 能直接看到「什麼時候斷的」，不用只靠卡住 20 秒之後的猜測。
+  navigator.usb.addEventListener("connect", (e) => {
+    log("USB 事件：偵測到裝置接上（" + (e.device.productName || e.device.serialNumber || "未知裝置") + "）", "ok");
+  });
+  navigator.usb.addEventListener("disconnect", (e) => {
+    log("USB 事件：裝置斷線（" + (e.device.productName || e.device.serialNumber || "未知裝置") + "）", "warn");
+  });
 }
 
 // 函式庫在「頁面載入時」就開始抓，不能等按鈕按下去才抓。
