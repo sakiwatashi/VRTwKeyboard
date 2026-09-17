@@ -1,6 +1,8 @@
 VRTwKeyboard
 Copyright (c) 2026 sakiwatashi
 
+本產品以 Apache License 2.0 授權，全文見 LICENSE。
+
 本產品包含或使用下列第三方元件。完整盤點與尚未釐清的項目見
 docs/licenses/third-party.md 與 docs/licenses/asr-paraformer.md。
 
