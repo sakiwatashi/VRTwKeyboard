@@ -1,0 +1,54 @@
+09-16 00:52:00.867 I/ActivityManager( 1549): Start proc 8988:tw.pinnedbopomofo.quest/u0a120 for service {tw.pinnedbopomofo.quest/tw.pinnedbopomofo.quest.ZhuyinImeService}
+09-16 01:14:44.942 I/ActivityManager( 1549): Force stopping tw.pinnedbopomofo.quest appid=10120 user=-1: installPackageLI
+09-16 01:14:44.944 I/ActivityManager( 1549): Killing 8988:tw.pinnedbopomofo.quest/u0a120 (adj 100): stop tw.pinnedbopomofo.quest due to installPackageLI
+09-16 01:14:45.054 I/ActivityManager( 1549): Force stopping tw.pinnedbopomofo.quest appid=10120 user=0: pkg removed
+09-16 01:16:05.718 I/ActivityManager( 1549): Start proc 12498:tw.pinnedbopomofo.quest/u0a120 for service {tw.pinnedbopomofo.quest/tw.pinnedbopomofo.quest.ZhuyinImeService}
+09-16 01:28:02.875 I/ActivityManager( 1549): Force stopping tw.pinnedbopomofo.quest appid=10120 user=-1: installPackageLI
+09-16 01:28:02.876 I/ActivityManager( 1549): Killing 12498:tw.pinnedbopomofo.quest/u0a120 (adj 100): stop tw.pinnedbopomofo.quest due to installPackageLI
+09-16 01:28:02.968 I/ActivityManager( 1549): Force stopping tw.pinnedbopomofo.quest appid=10120 user=0: pkg removed
+09-16 01:29:06.459 I/ActivityManager( 1549): Start proc 14399:tw.pinnedbopomofo.quest/u0a120 for service {tw.pinnedbopomofo.quest/tw.pinnedbopomofo.quest.ZhuyinImeService}
+09-16 01:29:06.671 D/ZhuyinIme(14399): service onCreate id=f47bb3c
+09-16 01:29:06.739 D/ZhuyinIme(14399): input window height=355 density=1.25 sizing=KeyboardSizing(candidateHeight=50, keyHeight=55, keyGap=2, padding=3, keyTextSp=17.164835, candidateTextSp=17.164835) theme=暖茶 opacity=CLEAR
+09-16 01:29:07.249 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=289 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:07.342 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=289 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:07.385 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=289 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:09.555 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:09.575 D/ZhuyinPerf(14399): perf key kind=function syllables=0 candidates=0 totalMs=146.5 engineMs=0.0 editorMs=0.0 uiMs=146.5 frameMs=183.3
+09-16 01:29:15.025 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:15.027 D/ZhuyinPerf(14399): perf key kind=zhuyin syllables=0 candidates=0 totalMs=4.0 engineMs=0.0 editorMs=0.3 uiMs=3.7 frameMs=8.3
+09-16 01:29:15.200 D/ZhuyinPerf(14399): perf load lexiconMs=6056.1 predictorMs=2462.8 totalMs=8518.8 heapMb=72 pssMb=119
+09-16 01:29:15.203 D/ZhuyinPerf(14399): perf ready sinceCreateMs=8532 id=f47bb3c
+09-16 01:29:15.208 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:15.221 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:25.524 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:25.540 D/ZhuyinPerf(14399): perf key kind=zhuyin syllables=1 candidates=60 totalMs=182.6 engineMs=38.3 editorMs=0.3 uiMs=144.0 frameMs=220.8
+09-16 01:29:25.542 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:25.752 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:25.765 D/ZhuyinPerf(14399): perf key kind=zhuyin syllables=2 candidates=60 totalMs=119.0 engineMs=20.7 editorMs=0.3 uiMs=98.1 frameMs=145.2
+09-16 01:29:25.787 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:27.099 D/ZhuyinPerf(14399): perf key kind=function syllables=2 candidates=60 totalMs=107.9 engineMs=1.0 editorMs=0.0 uiMs=106.9 frameMs=134.8
+09-16 01:29:28.726 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:29.639 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:29.648 D/ZhuyinPerf(14399): perf key kind=zhuyin syllables=3 candidates=60 totalMs=132.2 engineMs=46.7 editorMs=0.2 uiMs=85.3 frameMs=150.7
+09-16 01:29:29.697 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:30.273 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:30.282 D/ZhuyinPerf(14399): perf key kind=zhuyin syllables=3 candidates=60 totalMs=112.0 engineMs=16.6 editorMs=0.2 uiMs=95.2 frameMs=130.5
+09-16 01:29:30.341 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:30.560 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:30.572 D/ZhuyinPerf(14399): perf key kind=zhuyin syllables=3 candidates=60 totalMs=86.8 engineMs=11.9 editorMs=0.2 uiMs=74.8 frameMs=109.0
+09-16 01:29:30.663 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:31.683 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:31.692 D/ZhuyinPerf(14399): perf key kind=pick syllables=3 candidates=56 totalMs=68.7 engineMs=2.4 editorMs=0.4 uiMs=65.9 frameMs=94.6
+09-16 01:29:32.613 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:32.622 D/ZhuyinPerf(14399): perf key kind=zhuyin syllables=4 candidates=60 totalMs=85.2 engineMs=7.8 editorMs=0.5 uiMs=76.9 frameMs=103.0
+09-16 01:29:32.719 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:34.499 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:34.503 D/ZhuyinPerf(14399): perf key kind=pick syllables=0 candidates=3 totalMs=10.7 engineMs=0.2 editorMs=0.6 uiMs=9.9 frameMs=17.9
+09-16 01:29:35.386 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:35.391 D/ZhuyinPerf(14399): perf key kind=enter syllables=0 candidates=3 totalMs=0.2 engineMs=0.0 editorMs=0.0 uiMs=0.2 frameMs=16.8
+09-16 01:29:35.430 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:35.463 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:29:36.296 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:37:43.688 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:38:42.423 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3
+09-16 01:38:42.936 D/ZhuyinIme(14399): layout root=780x351 lastRowBottom=348 sideBottom=346 sideRight=776 clipped=false id=1e1c4b3

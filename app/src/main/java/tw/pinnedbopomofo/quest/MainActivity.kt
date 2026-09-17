@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.speech.SpeechRecognizer
 import android.text.InputType
+import android.util.Log
 import android.util.TypedValue
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
@@ -18,6 +19,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import tw.pinnedbopomofo.quest.voice.MicProbe
 
 /**
  * 診斷畫面：在頭盔上回答「這個系統版本讓不讓第三方輸入法跑」與「系統有沒有語音辨識服務」。
@@ -74,6 +76,17 @@ class MainActivity : Activity() {
             }
         })
 
+        micResult = TextView(this).apply {
+            text = "麥克風測試：還沒測"
+            textSize = 16f
+            setPadding(0, dp(8), 0, dp(8))
+        }
+        root.addView(Button(this).apply {
+            text = "麥克風測試（四種來源各錄 3 秒）"
+            setOnClickListener { runMicProbe() }
+        })
+        root.addView(micResult)
+
         root.addView(EditText(this).apply {
             hint = "點這裡測試注音輸入"
             textSize = 22f
@@ -94,6 +107,26 @@ class MainActivity : Activity() {
 
         // Quest 的 App 視窗只有 500×800，內容一多就會把最下面的欄位壓扁
         setContentView(ScrollView(this).apply { addView(root) })
+    }
+
+    /**
+     * 每種錄音來源各錄 3 秒，量音量。診斷「說話收不到」：
+     * 2026-09-16 頭盔上用 VOICE_RECOGNITION 量到說話峰值只有 −36 dB。
+     */
+    private fun runMicProbe() {
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            micResult.text = "請先允許使用麥克風"
+            return
+        }
+        micResult.text = "測試中：請持續說話 12 秒…"
+        Thread({
+            val lines = MicProbe.SOURCES.map { (name, source) ->
+                val result = MicProbe.measure(source, name, PROBE_MILLIS)
+                Log.d(PERF_TAG, "perf micProbe $result")
+                result.toString()
+            }
+            runOnUiThread { micResult.text = lines.joinToString(separator = System.lineSeparator()) }
+        }, "mic-probe").start()
     }
 
     override fun onResume() {
@@ -132,6 +165,8 @@ class MainActivity : Activity() {
         }
     }
 
+    private lateinit var micResult: TextView
+
     private fun yesNo(value: Boolean) = if (value) "是" else "否"
 
     private fun dp(value: Int) = TypedValue.applyDimension(
@@ -140,5 +175,8 @@ class MainActivity : Activity() {
 
     companion object {
         private const val REQUEST_MICROPHONE = 1
+        private const val PERF_TAG = "ZhuyinPerf"
+        /** 每種來源錄多久：夠長才能講一句話量到峰值。 */
+        private const val PROBE_MILLIS = 3000
     }
 }

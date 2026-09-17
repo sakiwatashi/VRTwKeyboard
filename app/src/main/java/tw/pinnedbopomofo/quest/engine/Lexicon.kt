@@ -23,9 +23,65 @@ class Lexicon private constructor(
     private val patternCache = HashMap<String, Cached>()
 
     /** 各音節的第一個符號 → 完整讀音。不完整的音節至少打了第一個符號，先用它縮小範圍。 */
-    private val byLeadingSymbols: Map<String, List<String>> = (entries.keys + extra.keys)
-        .filter { key -> key.split(' ').all { it.isNotEmpty() && it.first().toString() !in Zhuyin.TONES } }
-        .groupBy { leadingSymbols(it.split(' ')) }
+    private val byLeadingSymbols: Map<String, List<String>> = buildIndex()
+
+    /**
+     * 掃過全部讀音建索引。不切字串：14.7 萬個讀音各 split 一次，在頭盔上要 2.5 秒、佔冷啟動三成
+     * （2026-09-16 實測）。改成逐字元掃描，結果與原本的 split + groupBy 相同。
+     */
+    private fun buildIndex(): Map<String, List<String>> {
+        val groups = HashMap<String, MutableList<String>>()
+        val seen = HashSet<String>(entries.size + extra.size)
+        fun add(reading: String) {
+            if (!seen.add(reading)) return
+            val key = leadingSymbolsOf(reading) ?: return
+            groups.getOrPut(key) { ArrayList() } += reading
+        }
+        for (reading in entries.keys) add(reading)
+        for (reading in extra.keys) add(reading)
+        return groups
+    }
+
+    /** 取各音節的第一個符號；有空音節或音節以聲調開頭就回傳 null（這種讀音本來就不進索引）。 */
+    private fun leadingSymbolsOf(reading: String): String? {
+        val leading = StringBuilder()
+        var syllableStart = true
+        for (character in reading) {
+            if (character == ' ') {
+                if (syllableStart) return null
+                syllableStart = true
+                continue
+            }
+            if (syllableStart) {
+                if (character in TONE_CHARACTERS) return null
+                if (leading.isNotEmpty()) leading.append(' ')
+                leading.append(character)
+                syllableStart = false
+            }
+        }
+        return if (syllableStart) null else leading.toString()
+    }
+
+    /** 單字 → 可能的讀音，權重高的在前。同音修正用，第一次呼叫才建表。 */
+    private val characterReadings: Map<String, List<String>> by lazy {
+        val weights = HashMap<String, MutableList<Pair<String, Int>>>()
+        for ((reading, rows) in entries) {
+            if (reading.contains(' ')) continue
+            for (row in rows) {
+                if (row.phrase.characterCount() != 1) continue
+                weights.getOrPut(row.phrase) { ArrayList() } += reading to row.weight
+            }
+        }
+        weights.mapValues { (_, list) ->
+            list.sortedByDescending { it.second }.map { it.first }.distinct()
+        }
+    }
+
+    fun readingsOf(character: String): List<String> = characterReadings[character].orEmpty()
+
+    /** 這個詞在詞庫裡查得到嗎（任一讀音）。 */
+    fun knows(phrase: String, readings: List<String>): Boolean =
+        weight(readings, phrase) > 0
 
     fun candidates(readings: List<String>, limit: Int = 20): List<String> {
         if (readings.isEmpty() || limit <= 0) return emptyList()
@@ -130,67 +186,81 @@ class Lexicon private constructor(
         /** 簡轉繁留下的異體字繼承了常用字的詞頻，高出兩到三個數量級；除以這個數放回罕用的位置。 */
         private const val VARIANT_DEMOTION_DIVISOR = 1000
         private const val ROW_CACHE_LIMIT = 512
+        /** 聲調符號；用字元比對避免每個音節都產生一個字串。 */
+        private val TONE_CHARACTERS = Zhuyin.TONES.joinToString("")
         private val EMPTY = Cached(emptyList(), emptyMap())
 
-        fun load(open: DataOpener): Lexicon {
+        /** [timer] 只用來記各段時間（主詞庫的讀檔／解析／建表、小檔、索引），不影響結果。 */
+        fun load(open: DataOpener, timer: LoadTimer? = null): Lexicon {
             val entries = HashMap<String, List<Row>>()
-            readJson(open, "reading_phrases.json.gz")?.optJSONObject("entries")?.let { json ->
-                for (key in json.keys()) {
-                    val rows = json.optJSONArray(key) ?: continue
-                    val list = ArrayList<Row>(rows.length())
-                    for (i in 0 until rows.length()) {
-                        val row = rows.optJSONArray(i) ?: continue
-                        if (row.length() != 2) continue
-                        val phrase = row.opt(0) as? String ?: continue
-                        val weight = (row.opt(1) as? Number)?.toInt() ?: continue
-                        list += Row(phrase, weight)
+            val phrases = readJson(open, "reading_phrases.json.gz", timer, "phrases")?.optJSONObject("entries")
+            timer.timed("phrases.build") {
+                phrases?.let { json ->
+                    for (key in json.keys()) {
+                        val rows = json.optJSONArray(key) ?: continue
+                        val list = ArrayList<Row>(rows.length())
+                        for (i in 0 until rows.length()) {
+                            val row = rows.optJSONArray(i) ?: continue
+                            if (row.length() != 2) continue
+                            val phrase = row.opt(0) as? String ?: continue
+                            val weight = (row.opt(1) as? Number)?.toInt() ?: continue
+                            list += Row(phrase, weight)
+                        }
+                        entries[key] = list
                     }
-                    entries[key] = list
                 }
             }
 
-            val extra = loadWeights(open, "extra_phrases.json")
+            val extra = loadWeights(open, "extra_phrases.json", timer)
             // 變調唸法補在同一個備援表；手工列的那份優先
-            for ((key, words) in loadWeights(open, "tone_sandhi.json")) {
-                val target = extra.getOrPut(key) { HashMap() }
-                for ((phrase, weight) in words) target.putIfAbsent(phrase, weight)
+            for ((key, words) in loadWeights(open, "tone_sandhi.json", timer)) {
+                timer.timed("small.build") {
+                    val target = extra.getOrPut(key) { HashMap() }
+                    for ((phrase, weight) in words) target.putIfAbsent(phrase, weight)
+                }
             }
+            val taiwan = loadWeights(open, "taiwan_preferred.json", timer)
+            val polyphones = loadPolyphones(open, timer)
+            val demoted = loadDemotions(open, timer)
 
-            return Lexicon(
-                entries = entries,
-                extra = extra,
-                taiwan = loadWeights(open, "taiwan_preferred.json"),
-                polyphones = loadPolyphones(open),
-                demoted = loadDemotions(open),
-            )
+            // 建構時會掃過全部讀音，建「各音節第一個符號」索引
+            return timer.timed("index") {
+                Lexicon(entries = entries, extra = extra, taiwan = taiwan, polyphones = polyphones, demoted = demoted)
+            }
         }
 
-        private fun loadWeights(open: DataOpener, name: String): MutableMap<String, MutableMap<String, Int>> {
+        private fun loadWeights(open: DataOpener, name: String, timer: LoadTimer?): MutableMap<String, MutableMap<String, Int>> {
             val result = HashMap<String, MutableMap<String, Int>>()
-            val json = readJson(open, name)?.optJSONObject("entries") ?: return result
-            for (key in json.keys()) {
-                val words = json.optJSONObject(key) ?: continue
-                result[key] = words.keys().asSequence().associateWithTo(HashMap()) { words.optInt(it) }
+            val json = readJson(open, name, timer, "small")?.optJSONObject("entries") ?: return result
+            timer.timed("small.build") {
+                for (key in json.keys()) {
+                    val words = json.optJSONObject(key) ?: continue
+                    result[key] = words.keys().asSequence().associateWithTo(HashMap()) { words.optInt(it) }
+                }
             }
             return result
         }
 
-        private fun loadPolyphones(open: DataOpener): Map<String, Map<String, Int>> {
-            val json = readJson(open, "polyphone_weights.json")?.optJSONObject("characters")
+        private fun loadPolyphones(open: DataOpener, timer: LoadTimer?): Map<String, Map<String, Int>> {
+            val json = readJson(open, "polyphone_weights.json", timer, "small")?.optJSONObject("characters")
                 ?: return emptyMap()
             val result = HashMap<String, Map<String, Int>>()
-            for (character in json.keys()) {
-                if (character.characterCount() != 1) continue
-                val readings = json.optJSONObject(character) ?: continue
-                result[character] = readings.keys().asSequence().associateWith { readings.optInt(it) }
+            timer.timed("small.build") {
+                for (character in json.keys()) {
+                    if (character.characterCount() != 1) continue
+                    val readings = json.optJSONObject(character) ?: continue
+                    result[character] = readings.keys().asSequence().associateWith { readings.optInt(it) }
+                }
             }
             return result
         }
 
-        private fun loadDemotions(open: DataOpener): Set<String> {
-            val json = readJson(open, "variant_demotions.json")?.optJSONObject("characters")
+        private fun loadDemotions(open: DataOpener, timer: LoadTimer?): Set<String> {
+            val json = readJson(open, "variant_demotions.json", timer, "small")?.optJSONObject("characters")
                 ?: return emptySet()
-            return json.keys().asSequence().filter { it.characterCount() == 1 }.toSet()
+            return timer.timed("small.build") {
+                json.keys().asSequence().filter { it.characterCount() == 1 }.toSet()
+            }
         }
     }
 }

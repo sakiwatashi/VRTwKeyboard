@@ -6,3 +6,8 @@ local.properties
 .kotlin/
 # 設計稿組出來的畫布（含編輯器，約 2.5 MB），可以從 design/keyboard-styles/*.dc.html 與 canvas.json 重新產生
 design/keyboard-styles/quest-zhuyin-keyboard-styles.html
+
+# 語音模型與 sherpa-onnx 函式庫：體積大、授權另計，不進版控
+# 來源、revision、SHA256 記在 docs/licenses/asr-paraformer.md，照那份重新下載
+app/libs/*.aar
+.models/

@@ -157,9 +157,9 @@ class EngineTest {
             // 單元測試的工作目錄是 app 模組。ENGINE_TEST_DATA 用來指向刻意拿掉檔案的副本，
             // 確認這些測試在資料缺席時真的會失敗。
             val data = System.getenv("ENGINE_TEST_DATA")?.let(::File)
-                ?: File("../../pime-bopomofo-core/bopomofo_core/data")
+                ?: TestLexicon.directory()
             check(data.isDirectory) { "找不到詞庫資料：${data.canonicalPath}" }
-            Engine.load { name -> File(data, name).takeIf { it.isFile }?.inputStream() }
+            Engine.load(open = { name -> File(data, name).takeIf { it.isFile }?.inputStream() })
         }
     }
 }

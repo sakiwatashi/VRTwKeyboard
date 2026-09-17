@@ -13,6 +13,17 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "0.0.1"
+
+        // Quest 3S 是 arm64-v8a；其他 ABI 的 native library 只會讓 APK 變大
+        ndk { abiFilters += "arm64-v8a" }
+    }
+
+    packaging {
+        jniLibs {
+            // Kotlin API 只用得到 jni 與 onnxruntime：libsherpa-onnx-jni.so 的相依清單裡
+            // 沒有 c-api／cxx-api，排除它們可省約 4.7 MB
+            excludes += listOf("**/libsherpa-onnx-c-api.so", "**/libsherpa-onnx-cxx-api.so")
+        }
     }
 
     compileOptions {
@@ -26,16 +37,14 @@ android {
     }
 }
 
-androidComponents {
-    onVariants { variant ->
-        // 詞庫直接用 pime-bopomofo-core 的資料，不另外複製一份以免兩邊漂移
-        variant.sources.assets?.addStaticSourceDirectory(
-            rootDir.resolve("../pime-bopomofo-core/bopomofo_core/data").canonicalPath
-        )
-    }
-}
-
 dependencies {
+    // sherpa-onnx 官方沒有發佈 Maven artifact，只提供 GitHub Releases 的 AAR。
+    // 檔案不進 git；來源、revision 與 SHA256 見 docs/licenses/asr-paraformer.md
+    implementation(files("libs/sherpa-onnx-1.13.8.aar"))
+
+    // 簡體 → 台灣正體（含台灣用語）。純 Java、Apache-2.0，不需要 native library
+    implementation("com.github.houbb:opencc4j:1.14.0")
+
     testImplementation("junit:junit:4.13.2")
     // Android 的 org.json 在 JVM 單元測試裡只是空殼，要換成真的實作
     testImplementation("org.json:json:20260814")

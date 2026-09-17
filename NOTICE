@@ -1,0 +1,51 @@
+VRTwKeyboard
+Copyright (c) 2026 sakiwatashi
+
+本產品包含或使用下列第三方元件。完整盤點與尚未釐清的項目見
+docs/licenses/third-party.md 與 docs/licenses/asr-paraformer.md。
+
+================================================================================
+sherpa-onnx
+Copyright (c) 2022-2026 Xiaomi Corporation
+授權：Apache License 2.0
+來源：https://github.com/k2-fsa/sherpa-onnx
+說明：Android AAR v1.13.8，不進版控，由 tools/fetch-deps.ps1 下載。
+
+================================================================================
+ONNX Runtime
+Copyright (c) Microsoft Corporation
+授權：MIT License
+來源：https://github.com/microsoft/onnxruntime
+說明：包含在 sherpa-onnx AAR 內。
+
+================================================================================
+opencc4j
+Copyright (c) houbb
+授權：Apache License 2.0
+來源：https://github.com/houbb/opencc4j
+說明：簡體轉臺灣正體。
+
+================================================================================
+Silero VAD
+Copyright (c) 2021-present Silero Team
+授權：MIT License
+來源：https://github.com/snakers4/silero-vad
+說明：語音端點偵測模型，首次啟用語音功能時下載。
+
+================================================================================
+Streaming Paraformer 中英雙語 INT8
+授權：倉庫標示 apache-2.0（上游授權鏈尚未完全確認）
+來源：https://huggingface.co/csukuangfj/sherpa-onnx-streaming-paraformer-bilingual-zh-en
+說明：語音辨識模型，首次啟用語音功能時下載。
+      商業散布前必須確認上游 ModelScope 的授權鏈，
+      或改用已有官方商用澄清的 SenseVoiceSmall。
+
+================================================================================
+注音詞庫資料（app/src/main/assets/）
+來源：smart-priority-bopomofo（MIT）
+      https://github.com/sakiwatashi/keyinput123
+說明：上游轉製自 libchewing（LGPL-2.1+）、McBopomofo（MIT）
+      與 Rime Essay（Rime 本體為 GPL-3.0）的資料。
+
+      **這些上游授權對衍生詞庫資料的效力尚未釐清。**
+      商業散布前必須確認。

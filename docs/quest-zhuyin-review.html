@@ -1,0 +1,340 @@
+<title>Quest 注音鍵盤總審查</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+  :root {
+    --bg: #f3f4f7;
+    --surface: #ffffff;
+    --ink: #1b2130;
+    --muted: #5a6376;
+    --rule: #d8dce5;
+    --accent: #3b5bb5;
+    --accent-soft: #e3e9f8;
+    --good: #2c7a57;
+    --good-soft: #dff1e7;
+    --warn: #a86b12;
+    --warn-soft: #f7ecd6;
+    --risk: #b0443a;
+    --risk-soft: #f6e1de;
+    --bar-track: #e6e9f0;
+    --panel: #242a38;
+    --panel-key: #3b4357;
+    --panel-side: #2f3647;
+    --panel-strip: #1b2030;
+    --panel-accent: #86a2ec;
+    --panel-text: #e6e9f0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151d;
+      --surface: #191d28;
+      --ink: #e5e8ef;
+      --muted: #98a1b3;
+      --rule: #2a3040;
+      --accent: #8aa6ee;
+      --accent-soft: #232c45;
+      --good: #6fc393;
+      --good-soft: #1b2f26;
+      --warn: #e3b35a;
+      --warn-soft: #33291a;
+      --risk: #e58274;
+      --risk-soft: #3a2220;
+      --bar-track: #262c3a;
+      --panel: #0e1119;
+      --panel-key: #2c3345;
+      --panel-side: #232a39;
+      --panel-strip: #0a0d14;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151d;
+    --surface: #191d28;
+    --ink: #e5e8ef;
+    --muted: #98a1b3;
+    --rule: #2a3040;
+    --accent: #8aa6ee;
+    --accent-soft: #232c45;
+    --good: #6fc393;
+    --good-soft: #1b2f26;
+    --warn: #e3b35a;
+    --warn-soft: #33291a;
+    --risk: #e58274;
+    --risk-soft: #3a2220;
+    --bar-track: #262c3a;
+    --panel: #0e1119;
+    --panel-key: #2c3345;
+    --panel-side: #232a39;
+    --panel-strip: #0a0d14;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    padding-inline: 20px;
+  }
+  .page { max-width: 880px; margin: 0 auto; padding-block: 48px 72px; }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+  header.top { display: grid; gap: 28px; grid-template-columns: minmax(0, 1fr) auto; align-items: end; padding-bottom: 28px; border-bottom: 1px solid var(--rule); }
+  .eyebrow { font-size: 13px; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 6px; }
+  h1 { font-size: 34px; line-height: 1.25; margin: 0 0 12px; font-weight: 700; text-wrap: balance; letter-spacing: -0.01em; }
+  .lede { margin: 0; color: var(--muted); max-width: 60ch; }
+  .total { text-align: right; }
+  .total .score { font-size: 64px; line-height: 1; font-weight: 600; color: var(--accent); }
+  .total .score small { font-size: 22px; color: var(--muted); font-weight: 400; }
+  .total .verdict { margin-top: 8px; font-size: 14px; color: var(--muted); }
+
+  section { padding-top: 44px; }
+  h2 { font-size: 22px; margin: 0 0 6px; font-weight: 700; text-wrap: balance; }
+  .section-note { margin: 0 0 20px; color: var(--muted); font-size: 15px; max-width: 65ch; }
+
+  figure.panel-figure { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 20px; display: grid; gap: 14px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: center; }
+  figure.panel-figure svg { width: 100%; height: auto; display: block; }
+  figcaption { font-size: 14px; color: var(--muted); }
+  figcaption strong { color: var(--ink); font-weight: 600; }
+  .svg-panel { fill: var(--panel); }
+  .svg-strip { fill: var(--panel-strip); }
+  .svg-key { fill: var(--panel-key); }
+  .svg-side { fill: var(--panel-side); }
+  .svg-enter { fill: var(--panel-accent); }
+  .svg-label { fill: var(--panel-text); font-size: 17px; font-family: "Noto Sans TC", system-ui, sans-serif; }
+  .svg-dim { fill: var(--panel-text); opacity: 0.7; font-size: 14px; font-family: "IBM Plex Mono", ui-monospace, monospace; }
+
+  .facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .facts li { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 14px; padding: 12px 0; border-top: 1px solid var(--rule); }
+  .facts li:first-child { border-top: 0; }
+  .facts .k { color: var(--muted); font-size: 14px; padding-top: 2px; }
+
+  .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 15px; }
+  th, td { text-align: left; padding: 14px 16px; vertical-align: top; border-top: 1px solid var(--rule); }
+  thead th { border-top: 0; font-size: 13px; color: var(--muted); font-weight: 500; letter-spacing: 0.04em; }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  .bar { height: 6px; background: var(--bar-track); border-radius: 999px; margin-top: 8px; overflow: hidden; }
+  .bar span { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+  .why { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  tfoot td { font-weight: 600; }
+
+  .risks { display: grid; gap: 12px; }
+  .risk { display: grid; grid-template-columns: 4.2em minmax(0, 1fr); gap: 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; }
+  .risk p { margin: 0; }
+  .risk .fix { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .chip { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 10px; border-radius: 999px; text-align: center; height: fit-content; white-space: nowrap; }
+  .chip.high { color: var(--risk); background: var(--risk-soft); }
+  .chip.mid { color: var(--warn); background: var(--warn-soft); }
+  .chip.low { color: var(--good); background: var(--good-soft); }
+  .chip.done { color: var(--muted); background: var(--bar-track); }
+
+  .phases { display: grid; gap: 14px; }
+  .phase { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 18px 20px; }
+  .phase header { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; margin-bottom: 8px; }
+  .phase h3 { margin: 0; font-size: 18px; }
+  .phase .tag { font-size: 13px; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 10px; }
+  .phase .goal { font-size: 14px; color: var(--muted); }
+  .phase ul { margin: 0; padding-left: 1.2em; }
+  .phase li { margin: 4px 0; }
+
+  .numbers { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .number { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; }
+  .number .v { font-size: 26px; font-weight: 600; line-height: 1.2; }
+  .number .l { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--muted); }
+
+  @media (max-width: 680px) {
+    header.top { grid-template-columns: 1fr; }
+    .total { text-align: left; }
+    figure.panel-figure { grid-template-columns: 1fr; }
+    .numbers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .facts li { grid-template-columns: 1fr; gap: 2px; }
+    h1 { font-size: 28px; }
+  }
+</style>
+
+<div class="page">
+  <header class="top">
+    <div>
+      <p class="eyebrow">智慧優先注音 · Quest 原型 · 2026-09-16</p>
+      <h1>Quest 注音鍵盤總審查</h1>
+      <p class="lede">系統輸入法在 Quest 3S（Horizon OS 2.7）上真的能用：能啟用、能切換、能打整句。輸入體驗和選字已經是可日常試用的原型；專案已經進版本控制，但還沒有發布所需的簽章、授權聲明和使用者引導。</p>
+    </div>
+    <div class="total">
+      <div class="score mono">7.3<small> / 10</small></div>
+      <div class="verdict">可用原型，距離可發布還差一段</div>
+    </div>
+  </header>
+
+  <section>
+    <h2>頭盔上實測確認的事</h2>
+    <p class="section-note">以下每一條都是在使用者的 Quest 3S 上用系統記錄或實際操作驗證過的，不是推論。</p>
+    <figure class="panel-figure">
+      <svg viewBox="0 0 780 355" role="img" aria-label="輸入法面板 780 乘 355 像素的版面分區示意">
+        <rect class="svg-panel" x="0" y="0" width="780" height="355" rx="20"></rect>
+        <rect class="svg-strip" x="5" y="5" width="770" height="46" rx="12"></rect>
+        <text class="svg-label" x="20" y="34">候選字列（組字框・候選・✕・⌄）</text>
+        <rect class="svg-key" x="5" y="57" width="672" height="232" rx="12"></rect>
+        <text class="svg-label" x="24" y="160">字鍵 11 欄・大千四排</text>
+        <text class="svg-dim" x="24" y="186">按鍵 55 px 高</text>
+        <rect class="svg-side" x="5" y="295" width="672" height="54" rx="12"></rect>
+        <text class="svg-label" x="24" y="328">123 · 🌐 · 🎤 · 😀 · 空白 · ，。</text>
+        <rect class="svg-side" x="683" y="57" width="92" height="55" rx="12"></rect>
+        <text class="svg-label" x="720" y="91">⌫</text>
+        <rect class="svg-enter" x="683" y="116" width="92" height="114" rx="12"></rect>
+        <rect class="svg-side" x="683" y="234" width="92" height="55" rx="12"></rect>
+        <text class="svg-label" x="712" y="268">切換</text>
+        <rect class="svg-side" x="683" y="295" width="92" height="54" rx="12"></rect>
+        <text class="svg-label" x="712" y="328">收起</text>
+      </svg>
+      <figcaption><strong>面板固定 780 × 355 像素。</strong>要求 1248 × 568 時系統有收到，但畫面仍是 780 × 355、內容被切掉，所以所有設計都在這個框裡完成。實測排版：面板 780 × 351，最後一排底部 348，右側欄底部 346，沒有被切掉。</figcaption>
+    </figure>
+    <ul class="facts" style="margin-top: 18px">
+      <li><span class="k">裝置與系統</span><span>Quest 3S，Horizon OS 2.7（版號 207，2026-08-26 建置），Android 14 / API 34。</span></li>
+      <li><span class="k">啟用輸入法</span><span>系統會登記第三方輸入法；Meta 設定裡沒有開關，但指名開啟 Android 原生「螢幕鍵盤」頁可以打開。系統的輸入法選單可以叫出來，從鍵盤上也行。</span></li>
+      <li><span class="k">透明與模糊</span><span>面板可以半透明；背景模糊不支援（未宣告模糊支援、系統模糊開關為關、要求的模糊半徑沒有生效）。</span></li>
+      <li><span class="k">穩定性</span><span>多輪實際使用與監看（打字、逐段選字、表情、換配色與透明度、切換輸入法）都沒有當機或錯誤記錄。</span></li>
+      <li><span class="k">隱私</span><span>只宣告麥克風權限，沒有網路權限，詞庫與選字完全在頭盔上離線運作。</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>分項評分</h2>
+    <p class="section-note">權重反映「做成一個大家願意每天用的 Quest 輸入法」這個目標；總分是加權平均。9/16 更新：進版本控制、搬移 SDK 之後，程式品質 5.5 → 6.0、發布準備度 2.5 → 3.0，總分 7.25 → 7.33，四捨五入仍是 7.3。</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>項目</th><th class="num">權重</th><th class="num">分數</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>平台可行性</strong><div class="why">系統輸入法可啟用、可切換、排版與半透明都實測過。扣分在於靠的是 Meta 沒有公開保證的入口，v77 曾封鎖過。</div><div class="bar"><span style="width: 90%"></span></div></td>
+            <td class="num mono">15%</td><td class="num mono">9.0</td>
+          </tr>
+          <tr>
+            <td><strong>選字引擎</strong><div class="why">移植了整句詞網格、異體字降權、台灣寫法、補詞與變調；加上不完整音節、逐段選字、台灣化聯想詞。還沒移植個人詞庫學習、錯字與近音修正。</div><div class="bar"><span style="width: 75%"></span></div></td>
+            <td class="num mono">20%</td><td class="num mono">7.5</td>
+          </tr>
+          <tr>
+            <td><strong>輸入體驗</strong><div class="why">按下即觸發、鍵帽回饋、全刪、展開格子、表情頁、依欄位切頁與 Enter 動作、鍵盤上切換。缺游標移動、句中修改、音效。</div><div class="bar"><span style="width: 80%"></span></div></td>
+            <td class="num mono">20%</td><td class="num mono">8.0</td>
+          </tr>
+          <tr>
+            <td><strong>視覺設計</strong><div class="why">六套配色、三段透明度、擬物鍵帽、同心圓角，都可在鍵盤上切換。受限於無模糊，明體字型尚未確認可用。</div><div class="bar"><span style="width: 75%"></span></div></td>
+            <td class="num mono">10%</td><td class="num mono">7.5</td>
+          </tr>
+          <tr>
+            <td><strong>程式品質</strong><div class="why">引擎是純邏輯、分層清楚、可以單元測試。鍵盤主類別 847 行，佔主程式 52%，所有畫面都用程式碼組出來。已進版本控制。</div><div class="bar"><span style="width: 60%"></span></div></td>
+            <td class="num mono">10%</td><td class="num mono">6.0</td>
+          </tr>
+          <tr>
+            <td><strong>測試</strong><div class="why">34 項單元測試用真實詞庫跑，每個新測試都先證明過會失敗。沒有介面測試，頭盔上的排版靠記錄確認。</div><div class="bar"><span style="width: 70%"></span></div></td>
+            <td class="num mono">10%</td><td class="num mono">7.0</td>
+          </tr>
+          <tr>
+            <td><strong>效能與資源</strong><div class="why">頭盔上佔用約 117 MB，其中 Java 記憶體 61 MB，主要是整份詞庫解析在記憶體裡。啟動時間與每鍵延遲尚未量測。</div><div class="bar"><span style="width: 50%"></span></div></td>
+            <td class="num mono">5%</td><td class="num mono">5.0</td>
+          </tr>
+          <tr>
+            <td><strong>隱私與安全</strong><div class="why">完全離線、沒有網路權限。麥克風權限已宣告但語音功能還沒做。</div><div class="bar"><span style="width: 85%"></span></div></td>
+            <td class="num mono">5%</td><td class="num mono">8.5</td>
+          </tr>
+          <tr>
+            <td><strong>發布準備度</strong><div class="why">只有 debug 簽章、沒有授權聲明頁、沒有首次使用引導，上架政策未確認。版本紀錄與建置環境已經就緒。</div><div class="bar"><span style="width: 30%"></span></div></td>
+            <td class="num mono">5%</td><td class="num mono">3.0</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr><td>加權總分</td><td class="num mono">100%</td><td class="num mono">7.3</td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>風險與技術債</h2>
+    <p class="section-note">依影響排序，已解決的放在最後。「高」是現在就會造成損失或讓整個專案失效的事。</p>
+    <div class="risks">
+      <div class="risk"><span class="chip high">高</span><div><p>Meta 可能再次封鎖第三方輸入法（v77.1027 曾拿掉切換介面），而啟用流程依賴指名開啟原生設定頁。</p><p class="fix">保留「App 內打字再複製」的退路設計；每次 Horizon OS 更新都跑一次啟用與切換的回歸檢查。</p></div></div>
+      <div class="risk"><span class="chip mid">中</span><div><p>發布前要處理授權：詞庫資料含 LGPL-2.1 以上（libchewing-data）與 LGPL-3.0（Rime Essay）。</p><p class="fix">App 內加授權聲明與來源連結，確認 LGPL 資料的散布方式符合條款。</p></div></div>
+      <div class="risk"><span class="chip mid">中</span><div><p>整份詞庫以 JSON 解析進記憶體，Java 記憶體約 61 MB；輸入法行程被系統回收後，重新載入要花多久不知道。</p><p class="fix">先量測，再考慮改成預先建好的二進位索引。</p></div></div>
+      <div class="risk"><span class="chip mid">中</span><div><p>鍵盤主類別 847 行，畫面、狀態、選單、表情、鍵帽繪製都在一起，改一處容易牽動別處。</p><p class="fix">拆成鍵帽繪製、按鍵區、候選列、選單、表情頁幾個部分。</p></div></div>
+      <div class="risk"><span class="chip low">低</span><div><p>麥克風權限已宣告，但語音輸入還沒實作。</p><p class="fix">語音做好前可以先拿掉，或在 App 內說明用途。</p></div></div>
+      <div class="risk"><span class="chip low">低</span><div><p>無線偵錯連線會因頭盔休眠中斷，拖慢開發測試。</p><p class="fix">開發時插 USB，或暫時關閉休眠偵測。</p></div></div>
+      <div class="risk"><span class="chip done">已解決</span><div><p>專案原本完全沒有進版本控制（0 個追蹤檔案）。</p><p class="fix">已提交 commit 9e402b9，39 個檔案，只存在本機；依 repo 規則不 push 外層工作分支。之後每個功能一個 commit。</p></div></div>
+      <div class="risk"><span class="chip done">已解決</span><div><p>Android SDK 原本在 Claude App 的私人資料夾，離開 Claude 就無法建置。</p><p class="fix">已搬到使用者資料夾下的 Android\Sdk，專案設定改指新位置；從零重新編譯與 34 項測試通過，模擬器也找得到。</p></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>未來方向</h2>
+    <p class="section-note">階段有先後：前一階段是後一階段的地基，順序不建議對調。</p>
+    <div class="phases">
+      <article class="phase">
+        <header><h3>第一階段：穩住地基</h3><span class="tag">約 1–2 天</span><span class="goal">目標：不會弄丟、離開 Claude 也能建置、數字看得見</span></header>
+        <ul>
+          <li><s>把專案 commit 進版本控制</s>　已完成（9e402b9）；之後每個功能一個 commit。</li>
+          <li><s>Android SDK 搬出 Claude 的私人資料夾</s>　已完成，重新編譯與測試通過。</li>
+          <li>加上正式簽章與版本號設定。</li>
+          <li>量測啟動時間、每按一鍵的延遲、記憶體，寫成可重跑的檢查。</li>
+          <li>拆分鍵盤主類別。</li>
+        </ul>
+      </article>
+      <article class="phase">
+        <header><h3>第二階段：補齊選字引擎</h3><span class="tag">約 1 週</span><span class="goal">目標：跟 Windows 版的選字品質對齊</span></header>
+        <ul>
+          <li>移植個人詞庫與學習：記住使用者選過的字與上下文。</li>
+          <li>移植錯字修正與近音修正（ㄣ／ㄥ、ㄓ／ㄗ 等）。</li>
+          <li>詞庫改成預先建好的二進位索引，降低記憶體與啟動時間。</li>
+          <li>用 Windows 版的測試案例批次比對兩邊的輸出。</li>
+        </ul>
+      </article>
+      <article class="phase">
+        <header><h3>第三階段：打磨體驗</h3><span class="tag">約 1 週</span><span class="goal">目標：新使用者不看說明也能用</span></header>
+        <ul>
+          <li>首次使用引導：三步驟帶使用者啟用、切換、試打。</li>
+          <li>游標左右移動與句子中間修改。</li>
+          <li>按鍵音效，並確認頭盔上的明體字型是否可用。</li>
+          <li>表情膚色選擇、更多符號。</li>
+        </ul>
+      </article>
+      <article class="phase">
+        <header><h3>第四階段：離線語音輸入</h3><span class="tag">約 1–2 週</span><span class="goal">目標：講話直接出台灣正體中文，不上傳聲音</span></header>
+        <ul>
+          <li>評估 sherpa-onnx 的中文模型：大小、準確度、授權、頭盔上的速度。</li>
+          <li>接上簡體轉台灣正體（OpenCC s2twp）。</li>
+          <li>模型檔案下載前先向使用者確認來源與大小。</li>
+        </ul>
+      </article>
+      <article class="phase">
+        <header><h3>第五階段：發布</h3><span class="tag">持續</span><span class="goal">目標：讓其他 Quest 使用者裝得到、用得安心</span></header>
+        <ul>
+          <li>App 內授權聲明與隱私說明（強調完全離線）。</li>
+          <li>先上 SideQuest 收集回饋，再確認 Horizon Store 對輸入法類 App 的政策。</li>
+          <li>建立 Horizon OS 更新回歸清單：780 × 355 面板、半透明、原生設定入口、輸入法選單。</li>
+          <li>在 Quest 3 與其他機型上驗證。</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <h2>數據</h2>
+    <p class="section-note">2026-09-16 從專案與頭盔直接讀取。</p>
+    <div class="numbers">
+      <div class="number"><div class="v mono">1,622</div><div class="l">主程式行數（14 個 Kotlin 檔）</div></div>
+      <div class="number"><div class="v mono">34</div><div class="l">單元測試（299 行，全數通過）</div></div>
+      <div class="number"><div class="v mono">6.0 MB</div><div class="l">APK 大小（debug）</div></div>
+      <div class="number"><div class="v mono">117 MB</div><div class="l">頭盔上的總記憶體佔用</div></div>
+      <div class="number"><div class="v mono">61 MB</div><div class="l">其中 Java 記憶體</div></div>
+      <div class="number"><div class="v mono">39</div><div class="l">進版控的檔案（commit 9e402b9）</div></div>
+    </div>
+  </section>
+
+  <footer>
+    評分與風險依據本次開發過程中的實測記錄、單元測試結果與專案檔案；啟動時間與每鍵延遲尚未量測，對應的分數會在量測後更新。最後更新：2026-09-16，進版本控制與搬移 SDK 之後。
+  </footer>
+</div>

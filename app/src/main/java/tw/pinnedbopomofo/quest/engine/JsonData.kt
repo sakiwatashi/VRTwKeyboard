@@ -14,15 +14,19 @@ typealias DataOpener = (String) -> InputStream?
  * 是否 gzip 看檔頭而不是副檔名：打包進 APK 時 assets 的 .gz 會被去掉副檔名，
  * 同一份資料在測試裡叫 reading_phrases.json.gz，在 App 裡卻叫 reading_phrases.json。
  */
-internal fun readJson(open: DataOpener, name: String): JSONObject? = try {
-    open(name)?.let { stream ->
-        val buffered = BufferedInputStream(stream)
-        buffered.mark(2)
-        val gzipped = buffered.read() == 0x1f && buffered.read() == 0x8b
-        buffered.reset()
-        val input = if (gzipped) GZIPInputStream(buffered) else buffered
-        JSONObject(input.bufferedReader(Charsets.UTF_8).use { it.readText() })
+internal fun readJson(open: DataOpener, name: String, timer: LoadTimer? = null, stage: String = "json"): JSONObject? = try {
+    // 讀檔（含解壓）跟解析分開計時，才看得出慢在哪一段
+    val text = timer.timed("$stage.read") {
+        open(name)?.let { stream ->
+            val buffered = BufferedInputStream(stream)
+            buffered.mark(2)
+            val gzipped = buffered.read() == 0x1f && buffered.read() == 0x8b
+            buffered.reset()
+            val input = if (gzipped) GZIPInputStream(buffered) else buffered
+            input.bufferedReader(Charsets.UTF_8).use { it.readText() }
+        }
     }
+    text?.let { timer.timed("$stage.parse") { JSONObject(it) } }
 } catch (e: Exception) {
     null
 }

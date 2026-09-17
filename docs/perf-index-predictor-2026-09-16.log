@@ -1,0 +1,28 @@
+09-16 12:28:42.879 D/ZhuyinIme(15152): service onCreate id=c9ddb32
+09-16 12:28:48.765 D/ZhuyinIme(15152): input window width=3664 height=455 density=1.25 sizing=KeyboardSizing(panelWidth=800, candidateHeight=65, keyHeight=70, keyGap=3, padding=5, keyTextSp=22.0, candidateTextSp=22.0) theme=暖茶 opacity=CLEAR
+09-16 12:28:49.231 D/ZhuyinIme(15152): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=17955f9
+09-16 12:28:51.344 D/ZhuyinPerf(15152): perf load lexiconMs=5420.3 predictorMs=3034.6 totalMs=8454.9 heapMb=59 pssMb=113
+09-16 12:28:51.345 D/ZhuyinPerf(15152): perf loadSplit phrases.read=812.6 phrases.parse=1483.2 phrases.build=470.8 small.read=9.8 small.parse=26.5 small.build=55.4 index=2546.8 predictor.read=64.4 predictor.parse=939.1 predictor.collect=506.3 predictor.build=1523.9
+09-16 12:28:51.347 D/ZhuyinPerf(15152): perf ready sinceCreateMs=8468 id=c9ddb32
+09-16 12:28:51.350 D/ZhuyinIme(15152): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=17955f9
+09-16 12:32:45.837 D/ZhuyinIme(15152): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=17955f9
+09-16 12:32:46.467 D/ZhuyinIme(15152): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=17955f9
+09-16 12:35:31.232 D/ZhuyinIme(16261): service onCreate id=c9ddb32
+09-16 12:35:31.357 D/ZhuyinIme(16261): input window width=3664 height=455 density=1.25 sizing=KeyboardSizing(panelWidth=800, candidateHeight=65, keyHeight=70, keyGap=3, padding=5, keyTextSp=22.0, candidateTextSp=22.0) theme=暖茶 opacity=CLEAR
+09-16 12:35:31.980 D/ZhuyinIme(16261): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=a3506a7
+09-16 12:35:33.966 D/ZhuyinIme(16261): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=a3506a7
+09-16 12:35:33.975 D/ZhuyinPerf(16261): perf key kind=zhuyin syllables=0 candidates=0 totalMs=4.2 engineMs=0.0 editorMs=0.5 uiMs=3.7 frameMs=18.3
+09-16 12:35:34.143 D/ZhuyinIme(16261): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=a3506a7
+09-16 12:35:37.971 D/ZhuyinPerf(16261): perf load lexiconMs=4781.0 predictorMs=1949.3 totalMs=6730.3 heapMb=51 pssMb=111
+09-16 12:35:37.972 D/ZhuyinPerf(16261): perf loadSplit phrases.read=1099.6 phrases.parse=2205.0 phrases.build=506.4 small.read=7.6 small.parse=30.1 small.build=49.7 index=838.8 predictor.read=80.5 predictor.parse=679.0 predictor.collect=320.5 predictor.build=868.4
+09-16 12:35:37.977 D/ZhuyinPerf(16261): perf ready sinceCreateMs=6745 id=c9ddb32
+09-16 12:35:37.979 D/ZhuyinIme(16261): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=a3506a7
+09-16 12:35:46.346 D/ZhuyinIme(16261): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=a3506a7
+09-16 12:35:46.349 D/ZhuyinPerf(16261): perf key kind=tone syllables=0 candidates=0 totalMs=0.7 engineMs=0.0 editorMs=0.2 uiMs=0.5 frameMs=4.9
+09-16 12:35:46.511 D/ZhuyinIme(16261): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=a3506a7
+09-16 12:35:47.250 D/ZhuyinIme(16261): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=a3506a7
+09-16 12:35:47.280 D/ZhuyinPerf(16261): perf key kind=zhuyin syllables=1 candidates=60 totalMs=214.6 engineMs=47.0 editorMs=0.3 uiMs=167.3 frameMs=281.4
+09-16 12:35:47.580 D/ZhuyinIme(16261): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=a3506a7
+09-16 12:35:47.613 D/ZhuyinPerf(16261): perf key kind=zhuyin syllables=2 candidates=60 totalMs=215.1 engineMs=54.0 editorMs=0.3 uiMs=160.7 frameMs=268.7
+09-16 12:36:56.342 D/ZhuyinIme(16261): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=a3506a7
+09-16 12:36:56.806 D/ZhuyinIme(16261): layout root=800x455 lastRowBottom=450 sideBottom=447 sideRight=794 clipped=false id=a3506a7
