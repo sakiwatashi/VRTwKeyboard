@@ -1,15 +1,16 @@
 # Quest 注音輸入法：交接文件
 
-> 最後更新：2026-09-17 深夜。寫給接手的下一個對話（AI 或人）。**先讀完這份再動手。**
+> 最後更新：2026-09-18 凌晨。寫給接手的下一個對話（AI 或人）。**先讀完這份再動手。**
 >
 > 使用者用繁體中文溝通，要求說明詳細、有實測根據，不要只給標題。
 > 他會直接說「這很醜」「我不懂你的意思」——那是有效回饋，照做就好，不要辯解。
+> 卡住一直用同一個方法猜的時候他會直接說「不要再猜了」，那時候要換方法驗證，不要再改同一段程式碼賭一次。
 
 ---
 
 ## 1. 一句話現況
 
-**專案已經公開發佈。** 程式在 Meta Quest 3S（Horizon OS 2.7）上可以每天使用：
+**專案已經公開發佈，App 也已經裝上頭盔可以用了。** 程式在 Meta Quest 3S（Horizon OS 2.7）上：
 注音整句選字、離線語音輸入、十一套配色、八種特效。
 
 公開位置：
@@ -17,25 +18,31 @@
 | | 網址 | 狀態 |
 |---|---|---|
 | 原始碼 | https://github.com/sakiwatashi/VRTwKeyboard | Apache-2.0，已公開 |
-| 安裝頁 | https://sakiwatashi.github.io/VRTwKeyboard/ | 已上線 |
+| 安裝頁 | https://sakiwatashi.github.io/VRTwKeyboard/ | 已上線，**但還沒成功裝過一次，見下方 §2、§9** |
 | Release | https://github.com/sakiwatashi/VRTwKeyboard/releases/tag/v0.2.0 | 附簽章 APK |
 
-**當前唯一未完成的驗證**：使用者還沒成功用網頁安裝器裝過一次。
-最後一次嘗試失敗（我的 bug），已修好並推上線，**正等他重試**。
+**2026-09-18 凌晨：改用 `adb.exe install -r` 直接把 v0.2.0 APK 裝上頭盔，成功（回 `Success`）。**
+這條路跳過了網頁安裝器，是為了不讓「網頁安裝器卡住」擋住「App 能不能用」——兩件事現在是分開的。
+**網頁安裝器（WebUSB 直接跑 ADB）本身到目前為止仍然一次都沒成功過**，診斷細節見 §9，
+已知不是 JS 邏輯寫錯（封包送對了、Consumable 用法對了），懷疑是 Chrome 對這顆頭盔 USB 介面的
+獨占聲明機制，優先度不高，App 已經能用，可以之後再查。
 
 ---
 
 ## 2. 立刻要做的事
 
-1. **請使用者用 Chrome 開 <https://sakiwatashi.github.io/VRTwKeyboard/>，
-   按 Ctrl+Shift+R 強制重新整理**（Pages 有快取），等按鈕從「準備中…」變成
-   「連接頭盔並安裝」再按。
-2. 成功的話 → 抓六張截圖（清單在 `docs/sidequest-submission.md`），SideQuest 就能送。
-3. 失敗的話 → 請他把頁面上訊息框的內容貼出來，裡面有具體錯誤。
+App 已經能用了，接下來是發布後續：
 
-頭盔目前是**乾淨的**（我在 2026-09-17 把 APK 與語音模型都移除了，
-為了讓他測 release 簽章的安裝）。本機還有模型快取，
-要復原只要 `.\tools\deploy.ps1`（幾秒，不用重新下載 226 MB）。
+1. **拍 SideQuest 上架要的六張截圖**（清單在 `docs/sidequest-submission.md`），App 已經裝好、
+   現在是最方便拍的時候。
+2. 建 SideQuest listing，加 GitHub webhook（見 §6「SideQuest」小節，webhook 目前還沒加）。
+3. 網頁安裝器要不要繼續修，問使用者——不是發布的擋路石了，是加分項。
+   繼續查的話先看 §9 的診斷紀錄，**不要從頭用同一招（改 `docs/index.html` 猜）**，
+   先用 `adb.exe devices` / `Get-PnpDevice` 這類系統工具確認頭盔本身狀態，
+   而且測試時 Chrome 跟 adb.exe **不要同時開**（見下方環境地雷）。
+
+頭盔目前**已經裝好 App**（不是乾淨狀態了）。本機還有模型快取，
+語音模型要下載可以直接在頭盔裡按，或用 `.\tools\deploy.ps1`（幾秒，不用重新下載 226 MB）。
 
 ---
 
@@ -97,6 +104,18 @@ $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
   只比 `classes.dex` 會被騙。
 - **無線 adb 在頭盔重開機後會失效**（連得到但 `device offline`），要插線重跑 `adb tcpip 5555`。
   這個對話裡斷線了七八次，很浪費時間——長時間工作建議直接插線。
+- **Chrome 用 WebUSB 連過頭盔之後，`adb.exe` 會看不到裝置**，就算那次連線失敗、就算頁面程式碼
+  呼叫了 `device.raw.close()` 也沒用、reload 頁面也沒用——**只有把 Chrome 整個關掉（所有視窗）
+  才會真正放掉**。這個對話裡來回中獎好幾次，浪費很多時間才確認。要交替測試 adb.exe 跟瀏覽器時，
+  一定要先確認 Chrome 完全關閉，兩者不要同時開著碰同一顆頭盔。
+- **自己手動跑的 `adb start-server` 診斷完要記得 `kill-server`**，忘記關的話它會在頭盔喚醒時
+  自動搶走 ADB 介面，讓瀏覽器那邊出現「device is already in use by another program」，
+  這個對話裡就是這樣自己害自己卡住一次。
+- **頭盔的 USB 組合模式會變**（用 `Get-PnpDevice -PresentOnly` 查 `VID_2833` 看得到）：
+  有時是 `PID_5012`（有 MTP 儲存空間「Quest 3S」+ ADB Interface），有時變成 `PID_5013`
+  （沒有儲存空間，多了 XRSP/Crosswind/Highwind，可能是 Quest Link 相關模式）。
+  兩種模式下 `Get-PnpDevice` 都顯示 ADB Interface 狀態 OK，但只有 `PID_5012` 那個模式
+  實測 `adb.exe devices` 抓得到裝置。卡住時先查現在是哪個 PID，不要假設一定是同一個。
 
 ---
 
@@ -213,10 +232,38 @@ gradle testDebugUnitTest --rerun-tasks --console=plain
 
 ## 9. 已知問題與技術債
 
+**網頁安裝器的診斷紀錄（2026-09-17 深夜～2026-09-18 凌晨，一次對話裡）**
+
+現象：`docs/index.html` 按下安裝、選裝置、`device.connect()` 成功（有「USB 已開啟」），
+接著 `AdbDaemonTransport.authenticate()` 卡住，20 秒逾時，全程**沒有任何 USB 斷線事件**。
+
+已經排除、不是原因的：
+- ~~函式庫太晚載入、錯過授權期~~（已修，見 git log 裡「fix: 網頁安裝器按下去就失敗」那次 commit）
+- ~~程式碼寄出的封包格式錯~~——加了封包 log 後證實：我們的 code 在收到連線後 **12ms 內**送出
+  格式完全正確的 CNXN 封包（`command:1314410051` 就是 ADB 協定的 `CNXN`，版本號、payload 都對）
+- ~~頭盔睡著斷線~~——加了 USB connect/disconnect 事件監控後，證實失敗全程頭盔都沒有斷線
+- ~~本機背景 `adb server` 搶介面~~——診斷時期一度是真的（見 §4 環境地雷），但清掉之後問題依舊
+- ~~Consumable 用法錯/ getter-only 屬性寫壞~~——這兩個是除錯過程中**自己**踩的次要 bug，
+  已在 git log 裡修掉（`封包除錯功能本身把安裝流程弄壞了` 那次 commit）
+
+目前唯一還沒排除、最可疑的方向：**Chrome 對這顆頭盔 USB 介面的獨占聲明**。
+實測 `adb.exe devices` 在 Chrome 完全關閉時能連得上、能 `adb install`；
+但只要 Chrome 開著試過一次網頁安裝器（不管成功失敗），`adb.exe` 就看不到裝置了，
+連呼叫 `device.raw.close()` 都救不回來，只有整個關掉 Chrome 才會放。
+這暗示 Chrome 內部可能還握著某個底層 USB handle 沒放（也可能是 Windows WinUSB 驅動層的行為），
+跟 `docs/index.html` 的 JS 邏輯本身關係較小。下次要查：
+1. 換一個全新的 Chrome 使用者設定檔（或換 Edge）測試，排除這台電腦上 Chrome 設定/擴充功能的因素。
+2. 查 `chrome://device-log` 或 `chrome://usb-internals` 在卡住的當下有沒有更細的錯誤。
+3. 如果懷疑是驅動，考慮用 Zadig 重新綁一次這個 ADB Interface 的 WinUSB 驅動看看有沒有差。
+4. 不要再靠一直改 `docs/index.html` 加 log 猜——先用 `adb.exe` + `Get-PnpDevice` 把頭盔本身的狀態
+   確認清楚，兩邊測試之間切換時必須先把 Chrome 完全關掉。
+
 **擋發布的**
 
-- 網頁安裝器的 USB 流程**從未成功跑過一次**（見 §2）
-- SideQuest 還沒建 listing、沒有截圖
+- ~~網頁安裝器的 USB 流程從未成功跑過一次~~ → 已經不擋發布：2026-09-18 改用 `adb install` 直接把
+  App 裝上頭盔成功，App 本身可以用了。網頁安裝器本身還是沒修好（見上面診斷紀錄），但已經降級成
+  「加分項」，不是發布必要條件。
+- SideQuest 還沒建 listing、沒有截圖（App 已裝好，現在可以拍了）
 
 **功能缺口**
 
