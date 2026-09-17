@@ -3,9 +3,14 @@ package tw.pinnedbopomofo.quest.voice
 import java.io.File
 
 /**
- * 語音模型的位置。模型約 226 MiB，不打包進 APK，App 也沒有網路權限：
- * 開發時用 adb push 放到 App 專屬的外部儲存資料夾
+ * 語音模型的位置。
+ *
+ * 模型約 226 MiB，不打包進 APK。**App 刻意沒有 `INTERNET` 權限**，所以不會自己下載——
+ * 輸入法看得到使用者打的每一個字，讓它在技術上就沒有送出去的能力，比口頭保證有用。
+ * 模型由電腦端的 `tools/deploy.ps1` 下載（含 SHA256 驗證）再 adb push 到
  * `/sdcard/Android/data/tw.pinnedbopomofo.quest/files/asr/paraformer-bilingual-zh-en/`。
+ *
+ * 要改成 App 自行下載的話，得先加 `INTERNET` 權限——那是個產品決定，不是技術細節。
  *
  * 來源、revision 與 SHA256 見 `docs/licenses/asr-paraformer.md`。
  */

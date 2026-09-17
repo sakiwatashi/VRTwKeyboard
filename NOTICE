@@ -32,7 +32,8 @@ Silero VAD
 Copyright (c) 2021-present Silero Team
 授權：MIT License
 來源：https://github.com/snakers4/silero-vad
-說明：語音端點偵測模型，首次啟用語音功能時下載。
+說明：**目前並未使用。**斷句用的是本專案自己寫的能量式 Endpointer。
+      這一條保留是因為當初評估過並下載過，之後若改用 silero 會需要。
 
 ================================================================================
 Streaming Paraformer 中英雙語 INT8

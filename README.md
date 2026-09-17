@@ -29,15 +29,25 @@
 手機上的 Meta Horizon App →「裝置」→ 選你的頭盔 →「開發者模式」打開。
 頭盔接上 USB 線，戴上頭盔時會跳出「允許 USB 偵錯」，選允許。
 
-### 2. 安裝 APK
+### 2. 一鍵部署
+
+```powershell
+.\tools\deploy.ps1
+```
+
+這支腳本會做完全部四件事：下載語音模型（約 226 MB，含 SHA256 驗證，會快取）、
+安裝 APK、把模型推進頭盔、啟用輸入法。找不到 `adb` 的話會自動去找 SideQuest 內附的那份。
+
+只想裝鍵盤、不要語音：
+
+```powershell
+.\tools\deploy.ps1 -SkipModels
+```
+
+或者手動裝：
 
 ```powershell
 adb install -r app-debug.apk
-```
-
-確認裝上了：
-
-```powershell
 adb shell pm list packages | Select-String pinnedbopomofo
 ```
 
@@ -127,10 +137,19 @@ adb shell ime set tw.pinnedbopomofo.quest/.ZhuyinImeService
 
 ### 第一次使用
 
-1. 先開啟 App 本體（應用程式清單裡的「注音輸入法」），授予**麥克風權限**。
+1. **模型要先用電腦推進去**——`.\tools\deploy.ps1` 會處理。
+   App **不會自己下載**，因為它根本沒有網路權限（見下方說明）
+2. 開啟 App 本體（應用程式清單裡的「注音輸入法」），授予**麥克風權限**。
    輸入法自己跳不出權限對話框，一定要從 App 裡給
-2. 回到鍵盤，按 `🎤`
-3. 第一次會下載語音模型（約 226 MB），只需要一次
+3. 回到鍵盤，按 `🎤`
+
+### 為什麼模型不由 App 自己下載
+
+輸入法看得到你打的每一個字。這個 App 的 `AndroidManifest.xml` 裡**只有
+`RECORD_AUDIO` 一項權限，沒有 `INTERNET`**——它在技術上就沒有能力把任何東西送出去，
+不必只靠我們口頭保證。
+
+代價是模型得由電腦端的腳本下載再推進去。我們認為這個交換划算。
 
 ### 使用
 
@@ -293,4 +312,5 @@ adb logcat -s ZhuyinIme:*
 - 聯想詞不會學習
 - 沒有游標移動與句中修改
 - Horizon OS 沒有跨視窗模糊，毛玻璃只能用半透明模擬
+- 語音模型必須用電腦部署，App 端沒有下載功能（這是刻意的，見上方）
 - 只有 debug 簽章，沒有 release 設定
