@@ -154,13 +154,53 @@ adb pull /sdcard/shot.png
 
 ---
 
+## 自動發佈：GitHub Release → SideQuest
+
+SideQuest 不是用 OAuth 讀你的 repo，是用 **webhook**。設好之後每發一個
+GitHub Release，SideQuest 上的版本就自動跟著更新，不用再手動上傳 APK。
+
+設定順序（**webhook 網址要先有 app listing 才拿得到**）：
+
+1. 先在 SideQuest 建立 app listing（用上面那些欄位）
+2. 到該 app 的 **app manager** 頁面，複製 `https://sdq.st/release-webhook/<TOKEN>`
+3. GitHub repo → Settings → Webhooks → Add webhook
+   - Payload URL：貼上剛剛複製的網址
+   - Content type：`application/json`
+   - 事件：選「Let me select individual events」，**只勾 Releases**
+
+那個網址裡的 TOKEN 等於發佈權限，**不要提交進版控、不要貼在 issue 裡**。
+
+### 發版時必須遵守的規矩
+
+**每次發新版一定要把 `versionCode` 加一。**
+Android 用 `versionCode`（整數）判斷新舊，`versionName` 只是給人看的。
+忘了加的話，使用者的裝置會認為那不是更新，SideQuest 與我們自己的
+自我更新功能都可能不會生效。
+
+發版的完整順序：
+
+```powershell
+# 1. app/build.gradle.kts：versionCode +1，versionName 跟著改
+# 2. 建置並確認測試全過
+gradle testDebugUnitTest assembleRelease --console=plain
+
+# 3. 發 Release（tag 要跟 versionName 對得起來，例如 0.3.0 → v0.3.0）
+gh release create v0.3.0 `
+  app/build/outputs/apk/release/app-release.apk#VRTwKeyboard-v0.3.0.apk `
+  --title "v0.3.0 — 說明" --notes-file notes.md
+```
+
+第 3 步一完成，webhook 就會通知 SideQuest。
+
+---
+
 ## 送審前的檢查
 
 - [x] APK 用 release 金鑰簽過（v2 簽章）
 - [x] `versionName` 與 GitHub release tag 一致（0.2.0 / v0.2.0）
 - [x] 授權檔與 NOTICE 都在 repo 裡
 - [ ] 截圖（要頭盔）
-- [ ] 橫幅
+- [x] ~~橫幅~~ → `docs/banner.png`
 - [ ] 實際在乾淨的頭盔上用 SideQuest 裝一次，確認裝得起來
 
 最後一項最重要：**我們自己還沒用 SideQuest 裝過這個 APK**。
