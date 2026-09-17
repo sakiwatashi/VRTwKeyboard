@@ -224,12 +224,29 @@ async function run() {
   statusEl.textContent = "連線中。如果頭盔跳出「允許 USB 偵錯」，請戴上頭盔按允許。";
   log("連線中…（頭盔上可能要按「允許 USB 偵錯」）");
   const connection = await device.connect();
+  log("USB 已開啟，等待頭盔回應偵錯授權…");
   const credential = new AdbWebCredentialStore("VRTwKeyboard");
-  const transport = await AdbDaemonTransport.authenticate({
-    serial: device.serial,
-    connection,
-    credentialStore: credential,
-  });
+  const authTimeout = new Promise((_, reject) =>
+    setTimeout(
+      () =>
+        reject(
+          new Error(
+            "等了 20 秒頭盔都沒回應。請戴上頭盔看有沒有跳出「允許 USB 偵錯」的視窗並按允許；" +
+              "如果沒有跳出，去頭盔的「設定 > 系統 > 開發人員」確認 USB 偵錯是開著的，" +
+              "然後按「重新開始」再試一次。",
+          ),
+        ),
+      20000,
+    ),
+  );
+  const transport = await Promise.race([
+    AdbDaemonTransport.authenticate({
+      serial: device.serial,
+      connection,
+      credentialStore: credential,
+    }),
+    authTimeout,
+  ]);
   const adb = new Adb(transport);
   log("已連線", "ok");
 
