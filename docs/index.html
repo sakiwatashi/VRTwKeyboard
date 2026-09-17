@@ -223,14 +223,17 @@ async function run() {
 
   statusEl.textContent = "連線中。如果頭盔跳出「允許 USB 偵錯」，請戴上頭盔按允許。";
   log("連線中…（頭盔上可能要按「允許 USB 偵錯」）");
-  const connection = await device.connect();
+  const rawConnection = await device.connect();
   log("USB 已開啟，等待頭盔回應偵錯授權…");
 
   // 除錯用：把收到的原始 ADB 封包印出來，這樣卡住時能看出
   // 究竟是頭盔完全沒回應、還是有回應但卡在協商的哪一步。
+  // rawConnection.readable 只有 getter、不能直接改寫，
+  // 所以另外組一個 {readable, writable} 物件傳給 authenticate（它只需要這兩個欄位）。
+  let connection = rawConnection;
   try {
-    const [passthrough, tap] = connection.readable.tee();
-    connection.readable = passthrough;
+    const [passthrough, tap] = rawConnection.readable.tee();
+    connection = { readable: passthrough, writable: rawConnection.writable };
     (async () => {
       const reader = tap.getReader();
       try {
