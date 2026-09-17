@@ -58,8 +58,11 @@ function Find-Adb {
     throw "找不到 adb。請安裝 Android Platform Tools 或 SideQuest，或把 adb 加進 PATH。"
 }
 
+# 參數一律用陣列傳進來，不要靠 ValueFromRemainingArguments：
+# `Invoke-Adb shell mkdir -p $dir` 會讓 PowerShell 把 `-p` 當成參數名吃掉，
+# 裝置端只收到 `mkdir` 而報「Needs 1 argument」。2026-09-17 清空重裝時踩到。
 function Invoke-Adb {
-    param([Parameter(ValueFromRemainingArguments)] [string[]] $Arguments)
+    param([Parameter(Mandatory)] [string[]] $Arguments)
     $prefix = if ($Serial) { @("-s", $Serial) } else { @() }
     & $adb @prefix @Arguments
     if ($LASTEXITCODE -ne 0) { throw "adb $($Arguments -join ' ') 失敗（exit $LASTEXITCODE）" }
@@ -100,7 +103,7 @@ if (-not (Test-Path $ApkPath)) {
 }
 Write-Host ""
 Write-Host "安裝 $ApkPath ..."
-Invoke-Adb install -r $ApkPath
+Invoke-Adb @("install", "-r", $ApkPath)
 
 # ── 3. 語音模型 ──────────────────────────────────────────────────
 if ($SkipModels) {
@@ -132,11 +135,11 @@ if ($SkipModels) {
 
     Write-Host ""
     Write-Host "推送模型到頭盔..."
-    Invoke-Adb shell mkdir -p $deviceModelDir
+    Invoke-Adb @("shell", "mkdir", "-p", $deviceModelDir)
     foreach ($model in $models) {
         $local = Join-Path $cache $model.Name
         Write-Host "  $($model.Name)"
-        Invoke-Adb push $local "$deviceModelDir/$($model.Name)"
+        Invoke-Adb @("push", $local, "$deviceModelDir/$($model.Name)")
     }
 }
 
@@ -161,7 +164,10 @@ $installed = & $adb $(if ($Serial) { "-s"; $Serial }) shell pm list packages | S
 Write-Host "APK：$(if ($installed) { '已安裝' } else { '沒有找到' })"
 
 if (-not $SkipModels) {
-    $onDevice = & $adb $(if ($Serial) { "-s"; $Serial }) shell ls $deviceModelDir 2>&1
+    # 要先併成單一字串再比對：$onDevice 是多行陣列，
+    # 陣列 -notmatch 回傳的是「不符合的元素清單」而不是布林值，非空就恆為真，
+    # 於是每個檔案都被判定成缺少（2026-09-17 清空重裝時的假警報）。
+    $onDevice = (& $adb $(if ($Serial) { "-s"; $Serial }) shell ls $deviceModelDir 2>&1) -join "`n"
     $missing = @($models | Where-Object { $onDevice -notmatch [regex]::Escape($_.Name) })
     if ($missing.Count -eq 0) {
         Write-Host "語音模型：三個檔都在頭盔上"
