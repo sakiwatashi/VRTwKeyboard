@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VRTwKeyboard 安裝器</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --ground: #f6f5f2;
+    --card: #ffffff;
+    --ink: #1c1f1d;
+    --dim: #5f6663;
+    --line: #dcdad4;
+    --jade: #2f6b60;
+    --jade-soft: #e6efeb;
+    --gold: #8a6a12;
+    --danger: #9e2820;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #14181a; --card: #1c2225; --ink: #e6ece9; --dim: #97a29e;
+      --line: #2d3538; --jade: #7fc0b0; --jade-soft: #1e2a2a; --gold: #d9b84a; --danger: #e08a7e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #14181a; --card: #1c2225; --ink: #e6ece9; --dim: #97a29e;
+    --line: #2d3538; --jade: #7fc0b0; --jade-soft: #1e2a2a; --gold: #d9b84a; --danger: #e08a7e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: "Noto Sans TC", system-ui, sans-serif; line-height: 1.7;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 64px; padding-left: 20px; padding-right: 20px; }
+  h1 { font-size: clamp(26px, 5vw, 34px); margin: 0 0 8px; line-height: 1.25; text-wrap: balance; }
+  .sub { color: var(--dim); margin: 0 0 28px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px 22px; margin-bottom: 18px;
+  }
+  .card h2 { font-size: 18px; margin: 0 0 10px; font-weight: 500; }
+  .card p { margin: 0 0 10px; color: var(--dim); font-size: 14.5px; }
+  .card p:last-child { margin-bottom: 0; }
+  ol { margin: 0; padding-left: 22px; color: var(--dim); font-size: 14.5px; }
+  ol li { margin-bottom: 6px; }
+  strong { color: var(--ink); font-weight: 500; }
+  button {
+    appearance: none; font-family: inherit; font-size: 16px; font-weight: 500;
+    padding: 12px 22px; border-radius: 10px; cursor: pointer;
+    background: var(--jade); color: #fff; border: 0;
+  }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.ghost { background: transparent; color: var(--jade); border: 1px solid var(--jade); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+  #log {
+    margin-top: 14px; font-size: 13px; font-family: ui-monospace, "Cascadia Mono", monospace;
+    background: var(--jade-soft); border-radius: 8px; padding: 12px 14px;
+    white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto;
+    color: var(--ink);
+  }
+  #log:empty { display: none; }
+  .bar { height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; margin-top: 12px; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--jade); transition: width .2s; }
+  .warn { color: var(--danger); }
+  .ok { color: var(--jade); font-weight: 500; }
+  code { background: var(--jade-soft); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  a { color: var(--jade); }
+  .foot { color: var(--dim); font-size: 13px; margin-top: 28px; }
+  #unsupported { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>VRTwKeyboard 安裝器</h1>
+  <p class="sub">把臺灣注音輸入法裝進你的 Meta Quest。不用安裝任何軟體，這個網頁就是安裝器。</p>
+
+  <div class="card" id="unsupported">
+    <h2 class="warn">這個瀏覽器不支援</h2>
+    <p>安裝需要 <strong>WebUSB</strong>，只有 Chromium 系的瀏覽器有：<strong>Chrome</strong>、<strong>Edge</strong>、<strong>Opera</strong>。
+       Safari 與 Firefox 都不支援。</p>
+    <p>手機也可以——用<strong>安卓手機的 Chrome</strong> 加一條 OTG 線同樣能裝。iPhone 不行。</p>
+    <p>另外，<strong>不能用頭盔自己的瀏覽器</strong>：裝置沒辦法用 USB 連自己。</p>
+  </div>
+
+  <div class="card">
+    <h2>開始之前</h2>
+    <ol>
+      <li>手機的 <strong>Meta Horizon App</strong> →「裝置」→ 選你的頭盔 →「<strong>開發者模式</strong>」打開</li>
+      <li>用 <strong>USB 線</strong>把頭盔接到這台電腦（或安卓手機）</li>
+      <li><strong>戴上頭盔</strong>，會跳出「允許 USB 偵錯」，選允許並勾選「一律允許」</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>安裝</h2>
+    <p id="status">準備好之後按下面的按鈕，瀏覽器會請你選擇裝置。</p>
+    <div class="row">
+      <button id="install">連接頭盔並安裝</button>
+      <button id="reload" class="ghost" hidden>重新開始</button>
+    </div>
+    <div class="bar" hidden id="barwrap"><i id="bar"></i></div>
+    <div id="log"></div>
+  </div>
+
+  <div class="card">
+    <h2>裝好之後</h2>
+    <ol>
+      <li>在頭盔的應用程式清單找到 <strong>注音輸入法</strong>，打開它</li>
+      <li>按「<strong>開啟鍵盤設定</strong>」，把注音輸入法打開</li>
+      <li>要用語音輸入的話，按「<strong>允許使用麥克風</strong>」，再按「<strong>下載語音模型</strong>」（226 MB）</li>
+    </ol>
+    <p style="margin-top:12px">語音模型和之後的版本更新都可以在頭盔裡直接下載，<strong>不用再接電腦</strong>。</p>
+  </div>
+
+  <p class="foot">
+    原始碼與說明：<a href="https://github.com/sakiwatashi/VRTwKeyboard">github.com/sakiwatashi/VRTwKeyboard</a>　·
+    Apache-2.0　·　安裝用的 ADB 實作是 <a href="https://github.com/yume-chan/ya-webadb">Tango</a>（MIT）
+  </p>
+</div>
+
+<script type="module">
+const REPO = "sakiwatashi/VRTwKeyboard";
+const logEl = document.getElementById("log");
+const statusEl = document.getElementById("status");
+const installBtn = document.getElementById("install");
+const reloadBtn = document.getElementById("reload");
+const barWrap = document.getElementById("barwrap");
+const bar = document.getElementById("bar");
+
+function log(line, cls) {
+  const span = document.createElement("div");
+  if (cls) span.className = cls;
+  span.textContent = line;
+  logEl.appendChild(span);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function setProgress(fraction) {
+  barWrap.hidden = false;
+  bar.style.width = Math.max(0, Math.min(1, fraction)) * 100 + "%";
+}
+
+if (!("usb" in navigator)) {
+  document.getElementById("unsupported").style.display = "block";
+  installBtn.disabled = true;
+  statusEl.textContent = "這個瀏覽器沒有 WebUSB，無法安裝。";
+}
+
+reloadBtn.addEventListener("click", () => location.reload());
+
+installBtn.addEventListener("click", async () => {
+  installBtn.disabled = true;
+  logEl.textContent = "";
+  try {
+    await run();
+  } catch (error) {
+    log("失敗：" + (error && error.message ? error.message : error), "warn");
+    statusEl.textContent = "沒有裝成功。看下面的訊息，修正之後可以重試。";
+    reloadBtn.hidden = false;
+    installBtn.disabled = false;
+  }
+});
+
+async function run() {
+  statusEl.textContent = "載入安裝程式…";
+  log("載入 ADB 函式庫…");
+  // AdbWebCredentialStore 是 default export，不是具名匯出——
+  // 寫成具名解構會拿到 undefined，然後 new undefined() 直接爆。
+  const [adbMod, usbMod, credMod, binMod] = await Promise.all([
+    import("https://esm.sh/@yume-chan/adb@2.6.4"),
+    import("https://esm.sh/@yume-chan/adb-daemon-webusb@2.3.2"),
+    import("https://esm.sh/@yume-chan/adb-credential-web@2.1.0"),
+    import("https://esm.sh/@yume-chan/android-bin@2.1.0"),
+  ]);
+  const { Adb, AdbDaemonTransport } = adbMod;
+  const { AdbDaemonWebUsbDeviceManager } = usbMod;
+  const AdbWebCredentialStore = credMod.default ?? credMod.AdbWebCredentialStore;
+  const { PackageManager } = binMod;
+  for (const [name, value] of Object.entries({ Adb, AdbDaemonTransport, AdbDaemonWebUsbDeviceManager, AdbWebCredentialStore, PackageManager })) {
+    if (!value) throw new Error("函式庫載入不完整：缺少 " + name);
+  }
+
+  const manager = AdbDaemonWebUsbDeviceManager.BROWSER;
+  if (!manager) throw new Error("這個瀏覽器不支援 WebUSB");
+
+  statusEl.textContent = "請在跳出的視窗選擇你的頭盔。";
+  log("等待選擇裝置…");
+  const device = await manager.requestDevice();
+  if (!device) throw new Error("沒有選擇裝置");
+  log("裝置：" + (device.name || "Quest"));
+
+  statusEl.textContent = "連線中。如果頭盔跳出「允許 USB 偵錯」，請戴上頭盔按允許。";
+  log("連線中…（頭盔上可能要按「允許 USB 偵錯」）");
+  const connection = await device.connect();
+  const credential = new AdbWebCredentialStore("VRTwKeyboard");
+  const transport = await AdbDaemonTransport.authenticate({
+    serial: device.serial,
+    connection,
+    credentialStore: credential,
+  });
+  const adb = new Adb(transport);
+  log("已連線", "ok");
+
+  statusEl.textContent = "取得最新版本…";
+  log("查詢最新 release…");
+  const release = await fetch("https://api.github.com/repos/" + REPO + "/releases/latest", {
+    headers: { Accept: "application/vnd.github+json" },
+  }).then((r) => {
+    if (!r.ok) throw new Error("查不到 release（HTTP " + r.status + "）");
+    return r.json();
+  });
+  const asset = (release.assets || []).find((a) => a.name.toLowerCase().endsWith(".apk"));
+  if (!asset) throw new Error(release.tag_name + " 沒有附 APK");
+  log("版本 " + release.tag_name + "　" + (asset.size / 1048576).toFixed(1) + " MB");
+
+  statusEl.textContent = "下載 APK…";
+  const response = await fetch(asset.browser_download_url);
+  if (!response.ok) throw new Error("下載失敗（HTTP " + response.status + "）");
+  const total = asset.size;
+  const reader = response.body.getReader();
+  const chunks = [];
+  let received = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.length;
+    setProgress(received / total);
+    statusEl.textContent = "下載 APK… " + (received / 1048576).toFixed(1) + " / " + (total / 1048576).toFixed(1) + " MB";
+  }
+  const apk = new Blob(chunks, { type: "application/vnd.android.package-archive" });
+  log("下載完成 " + (apk.size / 1048576).toFixed(1) + " MB", "ok");
+  if (apk.size !== total) throw new Error("下載的大小不對，可能中斷了");
+
+  statusEl.textContent = "安裝中。這一步可能要一兩分鐘，不要拔線。";
+  log("安裝中…（不要拔線）");
+  setProgress(0);
+  const pm = new PackageManager(adb);
+  await pm.installStream(apk.size, apk.stream());
+  log("安裝完成", "ok");
+
+  statusEl.textContent = "啟用輸入法…";
+  try {
+    await adb.subprocess.noneProtocol.spawnWaitText(
+      "ime enable tw.pinnedbopomofo.quest/.ZhuyinImeService",
+    );
+    await adb.subprocess.noneProtocol.spawnWaitText(
+      "ime set tw.pinnedbopomofo.quest/.ZhuyinImeService",
+    );
+    const list = await adb.subprocess.noneProtocol.spawnWaitText("ime list -s");
+    if (list.includes("tw.pinnedbopomofo.quest")) {
+      log("輸入法已啟用", "ok");
+    } else {
+      log("自動啟用沒成功，請在頭盔裡的 App 按「開啟鍵盤設定」手動打開。");
+    }
+  } catch (error) {
+    log("自動啟用沒成功，請在頭盔裡的 App 按「開啟鍵盤設定」手動打開。");
+  }
+
+  setProgress(1);
+  statusEl.textContent = "裝好了！可以拔線，接下來的步驟在頭盔裡完成。";
+  log("完成。請看下面「裝好之後」的三個步驟。", "ok");
+  reloadBtn.hidden = false;
+  await adb.close().catch(() => {});
+}
+</script>
+</body>
+</html>
