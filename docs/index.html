@@ -225,6 +225,31 @@ async function run() {
   log("連線中…（頭盔上可能要按「允許 USB 偵錯」）");
   const connection = await device.connect();
   log("USB 已開啟，等待頭盔回應偵錯授權…");
+
+  // 除錯用：把收到的原始 ADB 封包印出來，這樣卡住時能看出
+  // 究竟是頭盔完全沒回應、還是有回應但卡在協商的哪一步。
+  try {
+    const [passthrough, tap] = connection.readable.tee();
+    connection.readable = passthrough;
+    (async () => {
+      const reader = tap.getReader();
+      try {
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          log(
+            "封包 <- " +
+              JSON.stringify(value, (_key, v) => (v instanceof Uint8Array ? "<" + v.length + " bytes>" : v)),
+          );
+        }
+      } catch (e) {
+        // 連線關閉或出錯時 tee 出來的分支也會跟著結束，不用特別處理
+      }
+    })();
+  } catch (e) {
+    log("（無法窺視底層封包：" + (e && e.message ? e.message : e) + "）");
+  }
+
   const credential = new AdbWebCredentialStore("VRTwKeyboard");
   const authTimeout = new Promise((_, reject) =>
     setTimeout(
