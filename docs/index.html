@@ -244,7 +244,32 @@ async function run() {
   let connection = rawConnection;
   try {
     const [passthrough, tap] = rawConnection.readable.tee();
-    connection = { readable: passthrough, writable: rawConnection.writable };
+
+    // 送出去的封包包在 Consumable 裡（給下游做緩衝區回收用）。
+    // 只偷看 .value 記錄，原封不動轉給真正的 writer，
+    // 不要自己呼叫 .consume()——那是真正處理完資料的那一端該做的事。
+    const realWriter = rawConnection.writable.getWriter();
+    const spyWritable = new WritableStream({
+      async write(chunk) {
+        try {
+          log(
+            "封包 -> " +
+              JSON.stringify(chunk.value, (_key, v) => (v instanceof Uint8Array ? "<" + v.length + " bytes>" : v)),
+          );
+        } catch (e) {
+          // 記錄失敗不該擋到真正的傳輸
+        }
+        await realWriter.write(chunk);
+      },
+      async close() {
+        await realWriter.close();
+      },
+      async abort(reason) {
+        await realWriter.abort(reason);
+      },
+    });
+
+    connection = { readable: passthrough, writable: spyWritable };
     (async () => {
       const reader = tap.getReader();
       try {
