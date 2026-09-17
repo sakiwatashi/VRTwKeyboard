@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 只開放放更新用 APK 的那一個資料夾，不要整個 files/ 都給出去 -->
+<paths>
+    <files-path name="updates" path="updates/" />
+</paths>

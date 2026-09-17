@@ -2,6 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!--
+      網路只用在一個地方：使用者從設定畫面按下「下載語音模型」或「檢查更新」。
+      輸入法服務本身不碰網路，打的字不會被送到任何地方。
+      下載的網址與 SHA256 都釘死在 VoiceModels 與 Updater 裡，不是任意連線。
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 自我更新：下載新版 APK 之後交給系統的安裝器，安裝與否仍由使用者在頭盔上確認 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:label="@string/app_name"
@@ -15,6 +24,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 把下載好的 APK 交給系統安裝器：Android N 之後不能直接遞 file:// -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <service
             android:name=".ZhuyinImeService"

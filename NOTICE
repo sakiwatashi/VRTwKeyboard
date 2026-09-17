@@ -28,6 +28,13 @@ Copyright (c) houbb
 說明：簡體轉臺灣正體。
 
 ================================================================================
+AndroidX Core
+Copyright (c) The Android Open Source Project
+授權：Apache License 2.0
+來源：https://developer.android.com/jetpack/androidx/releases/core
+說明：只用到 FileProvider，把下載好的 APK 交給系統安裝器。
+
+================================================================================
 Silero VAD
 Copyright (c) 2021-present Silero Team
 授權：MIT License
