@@ -146,6 +146,51 @@ if (!("usb" in navigator)) {
   statusEl.textContent = "這個瀏覽器沒有 WebUSB，無法安裝。";
 }
 
+// 函式庫在「頁面載入時」就開始抓，不能等按鈕按下去才抓。
+// Chrome 要求 requestDevice() 必須在使用者點擊後的短暫授權期內呼叫（約 5 秒），
+// 而從 esm.sh 抓四個模組要好幾秒——等載完授權期早就過了，
+// 瀏覽器會回「Must be handling a user gesture to show a permission request」。
+// 2026-09-17 實機就是這樣失敗的。
+let libraries = null;
+const librariesReady = (async () => {
+  const [adbMod, usbMod, credMod, binMod] = await Promise.all([
+    import("https://esm.sh/@yume-chan/adb@2.6.4"),
+    import("https://esm.sh/@yume-chan/adb-daemon-webusb@2.3.2"),
+    import("https://esm.sh/@yume-chan/adb-credential-web@2.1.0"),
+    import("https://esm.sh/@yume-chan/android-bin@2.1.0"),
+  ]);
+  const loaded = {
+    Adb: adbMod.Adb,
+    AdbDaemonTransport: adbMod.AdbDaemonTransport,
+    AdbDaemonWebUsbDeviceManager: usbMod.AdbDaemonWebUsbDeviceManager,
+    // 這個是 default export，不是具名匯出
+    AdbWebCredentialStore: credMod.default ?? credMod.AdbWebCredentialStore,
+    PackageManager: binMod.PackageManager,
+  };
+  for (const [name, value] of Object.entries(loaded)) {
+    if (!value) throw new Error("函式庫載入不完整：缺少 " + name);
+  }
+  libraries = loaded;
+  return loaded;
+})();
+
+if ("usb" in navigator) {
+  const original = installBtn.textContent;
+  installBtn.disabled = true;
+  installBtn.textContent = "準備中…";
+  librariesReady.then(
+    () => {
+      installBtn.disabled = false;
+      installBtn.textContent = original;
+      statusEl.textContent = "準備好了。按下面的按鈕，瀏覽器會請你選擇裝置。";
+    },
+    (error) => {
+      installBtn.textContent = original;
+      statusEl.textContent = "載入安裝程式失敗：" + (error && error.message ? error.message : error);
+    },
+  );
+}
+
 reloadBtn.addEventListener("click", () => location.reload());
 
 installBtn.addEventListener("click", async () => {
@@ -162,23 +207,10 @@ installBtn.addEventListener("click", async () => {
 });
 
 async function run() {
-  statusEl.textContent = "載入安裝程式…";
-  log("載入 ADB 函式庫…");
-  // AdbWebCredentialStore 是 default export，不是具名匯出——
-  // 寫成具名解構會拿到 undefined，然後 new undefined() 直接爆。
-  const [adbMod, usbMod, credMod, binMod] = await Promise.all([
-    import("https://esm.sh/@yume-chan/adb@2.6.4"),
-    import("https://esm.sh/@yume-chan/adb-daemon-webusb@2.3.2"),
-    import("https://esm.sh/@yume-chan/adb-credential-web@2.1.0"),
-    import("https://esm.sh/@yume-chan/android-bin@2.1.0"),
-  ]);
-  const { Adb, AdbDaemonTransport } = adbMod;
-  const { AdbDaemonWebUsbDeviceManager } = usbMod;
-  const AdbWebCredentialStore = credMod.default ?? credMod.AdbWebCredentialStore;
-  const { PackageManager } = binMod;
-  for (const [name, value] of Object.entries({ Adb, AdbDaemonTransport, AdbDaemonWebUsbDeviceManager, AdbWebCredentialStore, PackageManager })) {
-    if (!value) throw new Error("函式庫載入不完整：缺少 " + name);
-  }
+  // **第一件事就是跳選裝置的視窗**，不要先做任何會花時間的事——
+  // 瀏覽器的授權期很短，中間插一個網路請求就會過期。
+  if (!libraries) throw new Error("安裝程式還在載入，請等按鈕變成可按再試");
+  const { Adb, AdbDaemonTransport, AdbDaemonWebUsbDeviceManager, AdbWebCredentialStore, PackageManager } = libraries;
 
   const manager = AdbDaemonWebUsbDeviceManager.BROWSER;
   if (!manager) throw new Error("這個瀏覽器不支援 WebUSB");
@@ -186,7 +218,7 @@ async function run() {
   statusEl.textContent = "請在跳出的視窗選擇你的頭盔。";
   log("等待選擇裝置…");
   const device = await manager.requestDevice();
-  if (!device) throw new Error("沒有選擇裝置");
+  if (!device) throw new Error("沒有選擇裝置（視窗被關掉，或清單裡沒有頭盔）");
   log("裝置：" + (device.name || "Quest"));
 
   statusEl.textContent = "連線中。如果頭盔跳出「允許 USB 偵錯」，請戴上頭盔按允許。";
@@ -236,7 +268,33 @@ async function run() {
   log("安裝中…（不要拔線）");
   setProgress(0);
   const pm = new PackageManager(adb);
-  await pm.installStream(apk.size, apk.stream());
+  try {
+    await pm.installStream(apk.size, apk.stream());
+  } catch (error) {
+    const message = String((error && error.message) || error);
+    // 裝過舊版（例如自己建置的 debug 版）的人一定會撞到這個：
+    // Android 不允許用不同金鑰覆蓋安裝。訊息本身看不懂，要翻成人話並給出路。
+    if (message.includes("SIGNATURE") || message.includes("UPDATE_INCOMPATIBLE")) {
+      log("偵測到裝置上已有另一個來源的舊版本。", "warn");
+      statusEl.textContent = "需要先移除舊版才能安裝。舊版的語音模型也會一併刪掉。";
+      if (!confirm(`裝置上已經有一個用不同金鑰簽署的舊版本（例如你自己建置的版本）。
+
+Android 不允許直接覆蓋，必須先移除舊版。
+移除會連同已下載的語音模型一起刪掉，之後可以在頭盔裡重新下載。
+
+要移除並繼續嗎？`)) {
+        throw new Error("已取消。你也可以自己在頭盔上移除「注音輸入法」之後再試一次。");
+      }
+      log("移除舊版…");
+      await pm.uninstall("tw.pinnedbopomofo.quest");
+      log("已移除，重新安裝…");
+      const retry = await fetch(asset.browser_download_url);
+      if (!retry.ok) throw new Error("重新下載失敗（HTTP " + retry.status + "）");
+      await pm.installStream(asset.size, retry.body);
+    } else {
+      throw error;
+    }
+  }
   log("安裝完成", "ok");
 
   statusEl.textContent = "啟用輸入法…";
