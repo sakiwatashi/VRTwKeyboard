@@ -204,6 +204,11 @@ if ("usb" in navigator) {
 
 reloadBtn.addEventListener("click", () => location.reload());
 
+// 失敗時 Promise.race 丟掉的那個 authenticate() 呼叫還在背景繼續等，
+// 一直握著 USB 介面不放——不主動關閉的話，連 adb.exe 都會看不到裝置，
+// 一定要整個分頁關掉才會放。這裡記住目前抓到的裝置，失敗時強制關閉它。
+let activeDevice = null;
+
 installBtn.addEventListener("click", async () => {
   installBtn.disabled = true;
   logEl.textContent = "";
@@ -211,6 +216,15 @@ installBtn.addEventListener("click", async () => {
     await run();
   } catch (error) {
     log("失敗：" + (error && error.message ? error.message : error), "warn");
+    if (activeDevice) {
+      try {
+        await activeDevice.raw.close();
+        log("已釋放 USB 連線。");
+      } catch (e) {
+        // 裝置可能已經斷線，不用特別處理
+      }
+      activeDevice = null;
+    }
     statusEl.textContent = "沒有裝成功。看下面的訊息，修正之後可以重試。";
     reloadBtn.hidden = false;
     installBtn.disabled = false;
@@ -230,6 +244,7 @@ async function run() {
   log("等待選擇裝置…");
   const device = await manager.requestDevice();
   if (!device) throw new Error("沒有選擇裝置（視窗被關掉，或清單裡沒有頭盔）");
+  activeDevice = device;
   log("裝置：" + (device.name || "Quest"));
 
   statusEl.textContent = "連線中。如果頭盔跳出「允許 USB 偵錯」，請戴上頭盔按允許。";
