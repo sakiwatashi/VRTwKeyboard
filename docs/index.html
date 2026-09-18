@@ -5,70 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>VRTwKeyboard 安裝器</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
-<style>
-  :root {
-    --ground: #f6f5f2;
-    --card: #ffffff;
-    --ink: #1c1f1d;
-    --dim: #5f6663;
-    --line: #dcdad4;
-    --jade: #2f6b60;
-    --jade-soft: #e6efeb;
-    --gold: #8a6a12;
-    --danger: #9e2820;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --ground: #14181a; --card: #1c2225; --ink: #e6ece9; --dim: #97a29e;
-      --line: #2d3538; --jade: #7fc0b0; --jade-soft: #1e2a2a; --gold: #d9b84a; --danger: #e08a7e;
-    }
-  }
-  :root[data-theme="dark"] {
-    --ground: #14181a; --card: #1c2225; --ink: #e6ece9; --dim: #97a29e;
-    --line: #2d3538; --jade: #7fc0b0; --jade-soft: #1e2a2a; --gold: #d9b84a; --danger: #e08a7e;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--ground); color: var(--ink);
-    font-family: "Noto Sans TC", system-ui, sans-serif; line-height: 1.7;
-  }
-  .wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 64px; padding-left: 20px; padding-right: 20px; }
-  h1 { font-size: clamp(26px, 5vw, 34px); margin: 0 0 8px; line-height: 1.25; text-wrap: balance; }
-  .sub { color: var(--dim); margin: 0 0 28px; }
-  .card {
-    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-    padding: 20px 22px; margin-bottom: 18px;
-  }
-  .card h2 { font-size: 18px; margin: 0 0 10px; font-weight: 500; }
-  .card p { margin: 0 0 10px; color: var(--dim); font-size: 14.5px; }
-  .card p:last-child { margin-bottom: 0; }
-  ol { margin: 0; padding-left: 22px; color: var(--dim); font-size: 14.5px; }
-  ol li { margin-bottom: 6px; }
-  strong { color: var(--ink); font-weight: 500; }
-  button {
-    appearance: none; font-family: inherit; font-size: 16px; font-weight: 500;
-    padding: 12px 22px; border-radius: 10px; cursor: pointer;
-    background: var(--jade); color: #fff; border: 0;
-  }
-  button:disabled { opacity: .45; cursor: not-allowed; }
-  button.ghost { background: transparent; color: var(--jade); border: 1px solid var(--jade); }
-  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
-  #log {
-    margin-top: 14px; font-size: 13px; font-family: ui-monospace, "Cascadia Mono", monospace;
-    background: var(--jade-soft); border-radius: 8px; padding: 12px 14px;
-    white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto;
-    color: var(--ink);
-  }
-  #log:empty { display: none; }
-  .bar { height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; margin-top: 12px; }
-  .bar > i { display: block; height: 100%; width: 0; background: var(--jade); transition: width .2s; }
-  .warn { color: var(--danger); }
-  .ok { color: var(--jade); font-weight: 500; }
-  code { background: var(--jade-soft); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-  a { color: var(--jade); }
-  .foot { color: var(--dim); font-size: 13px; margin-top: 28px; }
-  #unsupported { display: none; }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="wrap">
@@ -84,12 +21,24 @@
   </div>
 
   <div class="card">
-    <h2>開始之前</h2>
-    <ol>
-      <li>手機的 <strong>Meta Horizon App</strong> →「裝置」→ 選你的頭盔 →「<strong>開發者模式</strong>」打開</li>
-      <li>用 <strong>USB 線</strong>把頭盔接到這台電腦（或安卓手機）</li>
-      <li><strong>戴上頭盔</strong>，會跳出「允許 USB 偵錯」，選允許並勾選「一律允許」</li>
-    </ol>
+    <h2>需要先準備的</h2>
+    <p>這四項都要成立才裝得起來。少任何一項，下面的安裝會在某一步停住。</p>
+    <ul class="req">
+      <li><strong>Chromium 系的瀏覽器</strong>：Chrome、Edge、Opera。
+          <strong>Safari 與 Firefox 不支援</strong>（它們沒有 WebUSB，這是瀏覽器本身的限制）。
+          安卓手機的 Chrome 加一條 OTG 線也可以，<strong>iPhone 不行</strong>。</li>
+      <li><strong>一條能傳資料的 USB 線</strong>把頭盔接到電腦。
+          只能充電的線不行——外觀看不出來，接上去頭盔不會出現在裝置清單裡。</li>
+      <li><strong>頭盔的開發者模式已經打開</strong>。
+          這是四項裡最麻煩的：要先在 Meta 的開發者網站建立一個「組織」（免費，但要驗證帳號），
+          再用手機的 <strong>Meta Horizon App</strong> →「裝置」→ 選你的頭盔 →「開發者模式」打開。
+          <strong>這是 Meta 的規定，我們沒辦法幫你省掉這一步。</strong></li>
+      <li><strong>安裝時要戴上頭盔</strong>。過程中頭盔畫面會跳出「允許執行 USB 偵錯」，
+          要按允許——那個視窗只出現在頭盔裡，你在電腦螢幕上看不到。
+          建議勾「一律允許」，之後就不用再按。</li>
+    </ul>
+    <p class="note">卡住的話，<a href="help.html">疑難排解</a>那一頁可以照著一項一項對，
+       每個症狀都寫了要檢查什麼。</p>
   </div>
 
   <div class="card">
@@ -113,9 +62,43 @@
     <p style="margin-top:12px">語音模型和之後的版本更新都可以在頭盔裡直接下載，<strong>不用再接電腦</strong>。</p>
   </div>
 
+  <div class="card">
+    <h2>這個網頁做了什麼</h2>
+    <p>安裝軟體到自己的裝置上，應該要看得懂它在做什麼。以下是全部。</p>
+
+    <h3>它怎麼跟頭盔溝通</h3>
+    <p>用瀏覽器的 <strong>WebUSB</strong> 直接跟頭盔講 <strong>ADB</strong>（Android 的除錯協定，
+       也就是 SideQuest 在用的同一套東西）。差別只在這裡是在你的瀏覽器分頁裡跑，
+       不需要在電腦上安裝任何程式。ADB 協定的實作用
+       <a href="https://github.com/yume-chan/ya-webadb">Tango</a>（MIT 授權）。</p>
+
+    <h3>它拿得到什麼權限</h3>
+    <p>只有<strong>你在瀏覽器視窗裡親自選的那一個 USB 裝置</strong>。瀏覽器不會讓網頁自己去找裝置，
+       而且關掉分頁就結束。頭盔那邊還要你在頭盔裡按「允許」才會放行。</p>
+
+    <h3>它會送出什麼資料</h3>
+    <p><strong>沒有。</strong>沒有分析工具、沒有追蹤、沒有帳號。網頁只做兩件對外的事：
+       從這個網站讀版本資訊、從這個網站下載 APK。APK 跟這一頁放在同一個網址下
+       （<code>sakiwatashi.github.io</code>，由 GitHub Pages 供檔）。</p>
+
+    <h3>它裝了什麼進去</h3>
+    <p>一個 APK，就是這個注音輸入法本身。<strong>不會動到你頭盔上的其他東西</strong>，
+       也不會改系統設定——只有「把這個輸入法啟用」這一項，而那是安裝的目的。</p>
+
+    <h3>你可以自己檢查</h3>
+    <p>整個專案是公開的，Apache-2.0 授權：
+       <a href="https://github.com/sakiwatashi/VRTwKeyboard">github.com/sakiwatashi/VRTwKeyboard</a>。
+       你現在看到的這一頁就是 repo 裡的 <code>docs/index.html</code>，可以直接讀原始碼；
+       APK 的 SHA-256 記在 <code>latest.json</code> 裡，下載後可以自己比對。
+       第三方元件的授權清單在 <code>docs/licenses/</code>。</p>
+  </div>
+
   <p class="foot">
-    原始碼與說明：<a href="https://github.com/sakiwatashi/VRTwKeyboard">github.com/sakiwatashi/VRTwKeyboard</a>　·
-    Apache-2.0　·　安裝用的 ADB 實作是 <a href="https://github.com/yume-chan/ya-webadb">Tango</a>（MIT）
+    <a href="help.html">裝不起來？看疑難排解</a>　·
+    原始碼：<a href="https://github.com/sakiwatashi/VRTwKeyboard">github.com/sakiwatashi/VRTwKeyboard</a>　·
+    Apache-2.0<br>
+    安裝用的 ADB 實作是 <a href="https://github.com/yume-chan/ya-webadb">Tango</a>（MIT）　·
+    語音辨識是 <a href="https://github.com/k2-fsa/sherpa-onnx">sherpa-onnx</a> 加上串流 Paraformer 模型
   </p>
 </div>
 

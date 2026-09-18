@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>疑難排解 · VRTwKeyboard 安裝器</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <a class="backlink" href="index.html">← 回安裝頁</a>
+  <h1>裝不起來的時候</h1>
+  <p class="sub">照著下面對。每一項都寫了「要檢查什麼」，不是叫你重試一次。
+     找不到符合的症狀就跳到最後一段，那裡說明怎麼把資訊給我們。</p>
+
+  <div class="card">
+    <h2>先確認這三件</h2>
+    <p>八成的問題卡在這裡。花一分鐘確認，比往下亂試省時間。</p>
+    <ul class="req">
+      <li><strong>瀏覽器是 Chrome、Edge 或 Opera 嗎？</strong>
+          Safari 和 Firefox 裝不起來，而且不會給你明確的錯誤——它們根本沒有 WebUSB 這個功能。
+          安裝頁最上面會出現紅字提示。</li>
+      <li><strong>頭盔的開發者模式打開了嗎？</strong>
+          手機的 Meta Horizon App →「裝置」→ 選你的頭盔 → 找「開發者模式」。
+          沒開的話，頭盔不會出現在瀏覽器的裝置選擇視窗裡。</li>
+      <li><strong>USB 線能傳資料嗎？</strong>
+          有些線只能充電，外觀完全看不出來。換一條線、換一個 USB 孔試試——
+          這比看起來常見得多。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>按症狀找</h2>
+
+    <div class="issue">
+      <h3>按鈕一直是「準備中…」，按不下去</h3>
+      <p>安裝程式要先從網路載入幾個模組，載完按鈕才會變成可按。正常幾秒內完成。</p>
+      <ul>
+        <li>等 10 秒。還是「準備中…」代表模組載入失敗了。</li>
+        <li>重新整理頁面（<code>Ctrl</code>+<code>Shift</code>+<code>R</code>）。</li>
+        <li>如果你的網路有擋外部網域，模組是從 <code>esm.sh</code> 來的，要放行。</li>
+      </ul>
+    </div>
+
+    <div class="issue">
+      <h3>按了安裝，沒有跳出選擇裝置的視窗</h3>
+      <ul>
+        <li>看網址列右邊有沒有被擋掉的圖示——瀏覽器可能把視窗擋住了。</li>
+        <li>確認瀏覽器是 Chrome、Edge 或 Opera。</li>
+        <li>這一頁必須是 <code>https://</code> 開頭（或 <code>localhost</code>）。
+            用 <code>file://</code> 直接開本機檔案是不行的，瀏覽器不給 USB 權限。</li>
+      </ul>
+    </div>
+
+    <div class="issue">
+      <h3>視窗跳出來了，但清單裡沒有頭盔</h3>
+      <p>這幾乎一定是這三個原因之一：</p>
+      <ul>
+        <li><strong>開發者模式沒開。</strong>最常見。</li>
+        <li><strong>線只能充電。</strong>換一條。</li>
+        <li><strong>有別的程式佔住頭盔了。</strong>SideQuest、Meta Quest Developer Hub、
+            Android Studio，或任何背景在跑的 <code>adb</code>。全部關掉再試。</li>
+      </ul>
+      <p class="note">如果你電腦上有 <code>adb</code>，在命令列跑 <code>adb kill-server</code>
+         再試一次。它會在背景獨佔頭盔的介面，瀏覽器就搶不到。</p>
+    </div>
+
+    <div class="issue">
+      <h3>卡在「USB 已開啟，等待頭盔回應偵錯授權…」</h3>
+      <p><strong>戴上頭盔看畫面。</strong>那個授權視窗只出現在頭盔裡，電腦螢幕上看不到。
+         它會顯示一串 RSA 金鑰指紋，問你要不要允許。</p>
+      <ul>
+        <li>看到的話：勾「一律允許從這部電腦」，按「允許」。</li>
+        <li>頭盔螢幕是黑的：戴上去讓它醒過來，視窗才會顯示。</li>
+        <li>等太久會顯示逾時訊息，按「重新開始」再試一次即可。</li>
+      </ul>
+    </div>
+
+    <div class="issue">
+      <h3>頭盔裡根本沒跳出那個授權視窗</h3>
+      <ul>
+        <li>到頭盔的<strong>設定 → 系統 → 開發人員</strong>，確認「USB 偵錯」是開的。
+            關掉再打開一次通常有效。</li>
+        <li>把 USB 線拔掉重插。</li>
+        <li>把瀏覽器<strong>整個關掉</strong>（所有視窗，不只那個分頁）再開。
+            瀏覽器連過頭盔之後不會馬上放掉，只關分頁沒有用。</li>
+      </ul>
+    </div>
+
+    <div class="issue">
+      <h3>下載很慢</h3>
+      <p>APK 大約 40 MB，放在 GitHub Pages 上，實測大概每秒 500 KB 左右，
+         也就是<strong>一分多鐘</strong>。慢是正常的，不是壞掉。</p>
+      <p>為什麼不放在更快的地方：APK 原本放在 GitHub 的 release 附件，那裡快得多，
+         但那個位置不允許網頁去讀取（瀏覽器的跨來源限制），所以只能搬到這裡。</p>
+    </div>
+
+    <div class="issue">
+      <h3>下載失敗，或中途斷掉</h3>
+      <ul>
+        <li>按「重新開始」重試。下載會從頭來過。</li>
+        <li>中途不要讓電腦睡著。</li>
+        <li>一直失敗的話，可以到
+            <a href="https://github.com/sakiwatashi/VRTwKeyboard/releases">GitHub Releases</a>
+            直接下載 APK，用 SideQuest 之類的工具安裝。</li>
+      </ul>
+    </div>
+
+    <div class="issue">
+      <h3>安裝失敗，訊息裡有 SIGNATURE 或 UPDATE_INCOMPATIBLE</h3>
+      <p>你的頭盔上已經有一個<strong>用不同金鑰簽署</strong>的舊版——例如你以前自己建置過，
+         或從別的地方裝過。Android 不允許用不同金鑰覆蓋安裝。</p>
+      <p>安裝器會偵測到這種情況並問你要不要移除舊版。<strong>移除會連同已下載的語音模型
+         一起刪掉</strong>（約 226 MB），裝好之後可以在頭盔裡重新下載。</p>
+    </div>
+
+    <div class="issue">
+      <h3>裝好了，但打字時看不到這個鍵盤</h3>
+      <ul>
+        <li>安裝器會嘗試自動啟用。沒成功的話，在頭盔裡打開<strong>注音輸入法</strong> App，
+            按「<strong>開啟鍵盤設定</strong>」，把它打開。</li>
+        <li>啟用之後還要<strong>選用</strong>它：App 裡有「切換輸入法」按鈕，
+            或在輸入文字時從系統的鍵盤切換選單選。</li>
+        <li>App 首頁會顯示目前狀態（「已啟用」與「目前選用」兩行），照著看就知道卡在哪一步。</li>
+      </ul>
+    </div>
+
+    <div class="issue">
+      <h3>語音輸入沒反應，或收不到聲音</h3>
+      <ul>
+        <li>打開 App，確認「<strong>麥克風權限</strong>」是「是」。不是的話按
+            「允許使用麥克風」。</li>
+        <li>確認「<strong>語音模型</strong>」顯示已安裝。沒有的話按「下載語音模型」（226 MB，要 Wi-Fi）。
+            模型沒裝的話，它聽得到你講話但不會出字。</li>
+        <li>App 裡有「<strong>麥克風測試</strong>」按鈕，會用四種錄音方式各錄三秒並量音量，
+            可以確認麥克風本身有沒有在收音。</li>
+        <li>講話時跟平常一樣就好，不用刻意大聲或靠近。</li>
+      </ul>
+    </div>
+
+    <div class="issue">
+      <h3>語音會吃掉最後一個字</h3>
+      <p>講快的時候比較容易發生。<strong>句尾稍微停頓半秒再放開</strong>可以明顯改善。
+         這是辨識模型分段解碼的特性，我們還在調整，不是你的操作有問題。</p>
+    </div>
+
+    <div class="issue">
+      <h3>我想確認下載到的是正確的檔案</h3>
+      <p><a href="latest.json">latest.json</a> 裡有這一版的版本號、檔案大小與 SHA-256。
+         你可以自己下載 <a href="VRTwKeyboard.apk">APK</a> 之後比對雜湊值：</p>
+      <ul>
+        <li>Windows：<code>certutil -hashfile VRTwKeyboard.apk SHA256</code></li>
+        <li>macOS／Linux：<code>shasum -a 256 VRTwKeyboard.apk</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>還是不行，怎麼回報</h2>
+    <p>安裝頁下半部有一塊灰色的記錄區，會逐行寫出走到哪一步、在哪裡停住。
+       <strong>把那整段複製下來</strong>，連同下面這些資訊一起回報，我們才有辦法判斷：</p>
+    <ul>
+      <li>你的作業系統與瀏覽器（例如：Windows 11、Chrome 141）</li>
+      <li>頭盔型號（例如：Quest 3S）</li>
+      <li>頭盔裡有沒有跳出「允許執行 USB 偵錯」</li>
+    </ul>
+    <p>回報位置：<a href="https://github.com/sakiwatashi/VRTwKeyboard/issues">GitHub Issues</a></p>
+    <p class="note">那段記錄裡<strong>沒有</strong>你的個人資料，只有安裝流程的每一步、
+       裝置型號與錯誤訊息。貼出來之前可以自己看過一遍。</p>
+  </div>
+
+  <p class="foot">
+    <a href="index.html">回安裝頁</a>　·
+    原始碼：<a href="https://github.com/sakiwatashi/VRTwKeyboard">github.com/sakiwatashi/VRTwKeyboard</a>　·
+    Apache-2.0
+  </p>
+</div>
+</body>
+</html>

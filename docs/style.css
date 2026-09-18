@@ -1,0 +1,121 @@
+/* VRTwKeyboard 安裝頁與疑難排解頁共用的樣式。
+   兩頁共用同一份，避免各自改到後來長得不一樣。 */
+
+:root {
+  --ground: #f6f5f2;
+  --card: #ffffff;
+  --ink: #1c1f1d;
+  --dim: #4d5350;
+  --line: #dcdad4;
+  --jade: #2f6b60;
+  --jade-soft: #e6efeb;
+  --gold: #8a6a12;
+  --danger: #9e2820;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #14181a; --card: #1c2225; --ink: #e6ece9; --dim: #a8b2ae;
+    --line: #2d3538; --jade: #7fc0b0; --jade-soft: #1e2a2a; --gold: #d9b84a; --danger: #e08a7e;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #14181a; --card: #1c2225; --ink: #e6ece9; --dim: #a8b2ae;
+  --line: #2d3538; --jade: #7fc0b0; --jade-soft: #1e2a2a; --gold: #d9b84a; --danger: #e08a7e;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "Noto Sans TC", system-ui, sans-serif;
+  /* 2026-09-19：原本內文 14.5px，使用者回報太小。整體往上調一級。 */
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.wrap { max-width: 780px; margin: 0 auto; padding: 40px 20px 72px; }
+
+h1 { font-size: clamp(28px, 5.5vw, 38px); margin: 0 0 10px; line-height: 1.25; text-wrap: balance; }
+.sub { color: var(--dim); margin: 0 0 30px; font-size: 17.5px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin-bottom: 18px;
+}
+.card h2 { font-size: 21px; margin: 0 0 12px; font-weight: 500; line-height: 1.4; }
+.card h3 { font-size: 17.5px; margin: 22px 0 8px; font-weight: 500; }
+.card h3:first-of-type { margin-top: 4px; }
+.card p { margin: 0 0 12px; color: var(--dim); font-size: 16.5px; }
+.card p:last-child { margin-bottom: 0; }
+
+ol, ul { margin: 0; padding-left: 24px; color: var(--dim); font-size: 16.5px; }
+ol li, ul li { margin-bottom: 8px; }
+li:last-child { margin-bottom: 0; }
+
+strong { color: var(--ink); font-weight: 600; }
+
+button {
+  appearance: none; font-family: inherit; font-size: 17px; font-weight: 500;
+  padding: 14px 26px; border-radius: 10px; cursor: pointer;
+  background: var(--jade); color: #fff; border: 0;
+}
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.ghost { background: transparent; color: var(--jade); border: 1px solid var(--jade); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+
+#log {
+  margin-top: 16px; font-size: 14px; font-family: ui-monospace, "Cascadia Mono", monospace;
+  background: var(--jade-soft); border-radius: 8px; padding: 14px 16px;
+  white-space: pre-wrap; word-break: break-word; max-height: 320px; overflow-y: auto;
+  color: var(--ink); line-height: 1.6;
+}
+#log:empty { display: none; }
+
+.bar { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; margin-top: 14px; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--jade); transition: width .2s; }
+
+.warn { color: var(--danger); }
+.ok { color: var(--jade); font-weight: 500; }
+
+code {
+  background: var(--jade-soft); padding: 2px 7px; border-radius: 4px;
+  font-size: 15px; font-family: ui-monospace, "Cascadia Mono", monospace;
+}
+
+a { color: var(--jade); }
+a:hover { text-decoration-thickness: 2px; }
+
+.foot { color: var(--dim); font-size: 15px; margin-top: 30px; line-height: 1.8; }
+
+/* 需要先做到的條件：打勾清單 */
+.req { list-style: none; padding-left: 0; }
+.req li {
+  position: relative; padding-left: 32px; margin-bottom: 14px;
+  color: var(--dim); font-size: 16.5px;
+}
+.req li::before {
+  content: "□"; position: absolute; left: 0; top: -1px;
+  color: var(--jade); font-size: 19px; line-height: 1.6;
+}
+.req li.no::before { content: "✕"; color: var(--danger); }
+
+/* 疑難排解：症狀 → 檢查 */
+.issue { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 20px; }
+.issue:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+.issue h3 { margin-top: 0; color: var(--ink); font-size: 18px; font-weight: 600; }
+
+.note {
+  background: var(--jade-soft); border-radius: 8px; padding: 14px 16px;
+  font-size: 16px; color: var(--ink); margin: 14px 0 0;
+}
+
+.backlink { display: inline-block; margin-bottom: 20px; font-size: 16px; }
+
+/* 「這個瀏覽器不支援」預設隱藏，只有偵測到沒有 WebUSB 時才由程式打開。
+   2026-09-19：把樣式從 index.html 抽出來時漏了這一行，變成每個人都看到紅字警告。 */
+#unsupported { display: none; }
