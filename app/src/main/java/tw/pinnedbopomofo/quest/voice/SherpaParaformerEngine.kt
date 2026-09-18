@@ -57,8 +57,22 @@ class SherpaParaformerEngine private constructor(private val recognizer: OnlineR
         /** 頭盔是 8 核心（2 大 6 小）；辨識用 2 條執行緒，留 CPU 給鍵盤畫面。之後量測再調。 */
         private const val THREADS = 2
 
-        /** 結束前補進去的靜音長度（0.5 秒），用來沖出最後一塊解碼結果。 */
-        private const val TAIL_SAMPLES = Endpointer.SAMPLE_RATE / 2
+        /**
+         * 結束前補進去的靜音長度，用來沖出最後一塊解碼結果。
+         *
+         * 原本是 0.5 秒（2026-09-16 為了修「today 只出到 to」加的）。2026-09-18 使用者回報
+         * 句尾的最後一個字又被吃掉，而這支檔案從那次之後沒有再改過，所以是 0.5 秒本身不夠：
+         * 串流 Paraformer 是固定區塊解碼，sherpa-onnx 的區塊加上前瞻大約要 0.6 秒以上，
+         * 補 0.5 秒剛好差一點，最後一塊湊不滿就不會吐出來——所以會「大部分時候還行、
+         * 偶爾吃掉最後一個字」。改成 1.0 秒留出餘裕。
+         *
+         * 2026-09-18 實測：0.5 -> 1.0 秒之後，講慢的不再掉字，但講快的仍有機率掉。
+         * 講快時同一塊裡塞進更多音節，要更多解碼步驟才吐得完，所以再加到 2.0 秒。
+         *
+         * 代價實測過，很小：log 裡 voice recognizing 到 voice done 只差 128～138 毫秒，
+         * 那就是補靜音加解碼的全部時間。補的是靜音，不影響辨識內容。
+         */
+        private const val TAIL_SAMPLES = Endpointer.SAMPLE_RATE * 2
 
         fun load(modelDir: File): SherpaParaformerEngine {
             val config = OnlineRecognizerConfig(
