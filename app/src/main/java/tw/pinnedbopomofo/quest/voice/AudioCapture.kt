@@ -27,7 +27,15 @@ class AudioCapture(
         if (minBuffer <= 0) return "這台裝置不支援 16 kHz 錄音"
         val record = try {
             AudioRecord(
-                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                // 2026-09-18 頭盔實測（App 內建的麥克風測試，四種來源各錄 3 秒、同一段說話）：
+                //     VOICE_RECOGNITION   peakDb=-35.8  meanDb=-53.2   <- 原本用這個
+                //     MIC                 peakDb=-65.8  meanDb=-81.8
+                //     VOICE_COMMUNICATION peakDb=-70.9  meanDb=-85.2
+                //     CAMCORDER           peakDb=-31.4  meanDb=-45.7   <- 現在用這個
+                // CAMCORDER 峰值高 4.4 dB、平均高 7.5 dB。MIC 與 VOICE_COMMUNICATION
+                // 在這顆頭盔上低了 30 dB 以上，等於是聾的，不要用。
+                // 這關係到能不能聽到：同一次實測裡 111 框只有 14 框過門檻，訊號多幾 dB 差很多。
+                MediaRecorder.AudioSource.CAMCORDER,
                 Endpointer.SAMPLE_RATE,
                 CHANNEL,
                 ENCODING,

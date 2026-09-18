@@ -66,13 +66,20 @@ class EndpointerTest {
     }
 
     @Test
-    fun `按下就馬上說話：校正把說話聲當成環境噪音，結果偵測不到（目前的缺陷）`() {
-        // 2026-09-16 使用者回報「靈敏度時好時壞」，這支測試把懷疑的原因固定下來。
+    fun `按下就馬上說話：校正被說話污染時不採信，仍然偵測得到開口`() {
+        // 2026-09-16 使用者回報「靈敏度時好時壞」。原因：校正那 200 ms 把說話聲當成環境噪音，
+        // 門檻被拉到說話音量的四倍，整段都觸發不了；而且沒在說話時噪音底會往目前音量靠，
+        // 持續講話就讓它一直卡在高點，等待期過完都回不來。
+        // 2026-09-18 修正：改用校正窗內的「平均/最小」比值判斷有沒有被說話污染。
+        //
+        // 這裡用 Signals.speech（有音節起伏）而不是 Signals.voice（固定音量正弦波）：
+        // 固定音量的訊號在能量上跟風扇噪音完全無法區分，那不是真人說話的樣子。
         val endpointer = Endpointer()
-        val events = run(endpointer, Signals.voice(2000), Signals.quiet(1500))
-        assertTrue("竟然偵測到了開口：$events", events.none { it.first == Endpointer.Event.STARTED })
-        val calibration = Regex("""calDb=(-?[\d.]+)""").find(endpointer.summary())!!.groupValues[1].toDouble()
-        assertTrue("校正時的噪音底 $calibration 應該被說話聲拉高", calibration > -20)
+        val events = run(endpointer, Signals.speech(2000, peakAmplitude = 656), Signals.quiet(1500))
+        assertTrue(
+            "按下就馬上講話也要聽得到：$events　${endpointer.summary()}",
+            events.any { it.first == Endpointer.Event.STARTED },
+        )
     }
 
     @Test
@@ -94,6 +101,24 @@ class EndpointerTest {
             events.map { it.first },
         )
         assertTrue("開口判定太慢：${events.first().second} ms", events.first().second < 900)
+    }
+
+    @Test
+    fun `錄音剛開始的空白框不算環境噪音`() {
+        // 2026-09-18 頭盔實測：voice done ... calDb=-115.4 noiseDb=-76.6
+        // −115 dB 不是「很安靜的房間」，是 AudioRecord 還沒開始吐資料的空白框。
+        // 真正的環境噪音是 −76.6。拿空白框當基準等於每次校正都白量。
+        val endpointer = Endpointer()
+        val blank = List(10) { ShortArray(Endpointer.FRAME_SAMPLES) }
+        run(
+            endpointer,
+            blank,
+            Signals.noise(500, amplitude = 45),
+            Signals.speech(1500, peakAmplitude = 656, noiseAmplitude = 45),
+            Signals.noise(1200, amplitude = 45),
+        )
+        val cal = Regex("""calDb=(-?[\d.]+)""").find(endpointer.summary())!!.groupValues[1].toDouble()
+        assertTrue("校正該量到真正的環境噪音，不是空白框：${endpointer.summary()}", cal > -90)
     }
 
     @Test

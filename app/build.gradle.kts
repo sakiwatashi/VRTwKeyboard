@@ -27,8 +27,8 @@ android {
         // versionName 要跟 GitHub release 的 tag 對得起來：Updater 只比數字段落，
         // 所以 tag 寫成 v0.2.0 時這裡就是 0.2.0。兩邊不同步會讓更新檢查誤判
         // （0.0.1 對上 v0.1 會被判成「有新版」，其實是同一版）。
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.2.1"
 
         // Quest 3S 是 arm64-v8a；其他 ABI 的 native library 只會讓 APK 變大
         ndk { abiFilters += "arm64-v8a" }

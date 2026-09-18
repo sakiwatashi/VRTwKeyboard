@@ -716,7 +716,16 @@ class ZhuyinImeService : InputMethodService() {
             }
             VoiceState.NoSpeech -> {
                 Log.d(TAG, "voice noSpeech peak=$voicePeak ${voiceEndpointer?.summary()}")
-                endVoice(if (voicePeak <= 0f) "麥克風收到的全是靜音，可能被系統擋下" else "沒有聽到說話")
+                endVoice(
+                    when {
+                        voicePeak <= 0f -> "麥克風收到的全是靜音，可能被系統擋下"
+                        // 校正那 200 ms 被說話聲蓋掉時給出可以照做的指示，
+                        // 不要只說「沒有聽到說話」讓人不知道下一步該幹嘛。
+                        voiceEndpointer?.calibrationPolluted == true ->
+                            "沒有聽到說話。按下麥克風後請等半秒再開口——一按就講會讓它把你的聲音當成環境噪音。"
+                        else -> "沒有聽到說話"
+                    },
+                )
             }
             is VoiceState.Failed -> {
                 Log.d(TAG, "voice failed: ${state.reason}")
