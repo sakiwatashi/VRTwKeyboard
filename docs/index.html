@@ -427,22 +427,39 @@ Android 不允許直接覆蓋，必須先移除舊版。
   }
   log("安裝完成", "ok");
 
+  // 裝完之後系統不會立刻認得這個新的輸入法：Android 要重新掃描套件、
+  // InputMethodManagerService 才會把它加進清單。
+  //
+  // 2026-09-18 實測：安裝完成後 89 ms 就送出 ime enable，那時清單裡還沒有它，
+  // 指令等於打在空氣上；同一台機器過幾分鐘再下同一道指令，一次就成功。
+  // 所以要等它真的出現在「系統認得的清單」裡再啟用，不要問一次就放棄。
   statusEl.textContent = "啟用輸入法…";
-  try {
-    await adb.subprocess.noneProtocol.spawnWaitText(
-      "ime enable tw.pinnedbopomofo.quest/.ZhuyinImeService",
-    );
-    await adb.subprocess.noneProtocol.spawnWaitText(
-      "ime set tw.pinnedbopomofo.quest/.ZhuyinImeService",
-    );
-    const list = await adb.subprocess.noneProtocol.spawnWaitText("ime list -s");
-    if (list.includes("tw.pinnedbopomofo.quest")) {
-      log("輸入法已啟用", "ok");
-    } else {
-      log("自動啟用沒成功，請在頭盔裡的 App 按「開啟鍵盤設定」手動打開。");
+  const IME_ID = "tw.pinnedbopomofo.quest/.ZhuyinImeService";
+  let imeEnabled = false;
+  let lastProblem = "系統一直沒有把這個輸入法加進清單";
+  for (let attempt = 1; attempt <= 12; attempt += 1) {
+    try {
+      const known = await adb.subprocess.noneProtocol.spawnWaitText("ime list -a -s");
+      if (known.includes(IME_ID)) {
+        await adb.subprocess.noneProtocol.spawnWaitText("ime enable " + IME_ID);
+        await adb.subprocess.noneProtocol.spawnWaitText("ime set " + IME_ID);
+        const on = await adb.subprocess.noneProtocol.spawnWaitText("ime list -s");
+        if (on.includes(IME_ID)) {
+          log("輸入法已啟用（等了 " + attempt + " 次）", "ok");
+          imeEnabled = true;
+          break;
+        }
+        lastProblem = "系統認得這個輸入法，但啟用之後它沒有出現在已啟用清單裡";
+      }
+    } catch (error) {
+      // 這兩種失敗原本印同一句話，分不出是哪一種，查起來多花很多時間。
+      lastProblem = "指令執行失敗：" + ((error && error.message) || error);
     }
-  } catch (error) {
-    log("自動啟用沒成功，請在頭盔裡的 App 按「開啟鍵盤設定」手動打開。");
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  if (!imeEnabled) {
+    log("自動啟用沒成功（" + lastProblem + "）。", "warn");
+    log("請在頭盔裡的 App 按「開啟鍵盤設定」手動打開。");
   }
 
   setProgress(1);
