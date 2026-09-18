@@ -136,6 +136,7 @@ function log(line, cls) {
   logEl.appendChild(span);
   logEl.scrollTop = logEl.scrollHeight;
 }
+
 function setProgress(fraction) {
   barWrap.hidden = false;
   bar.style.width = Math.max(0, Math.min(1, fraction)) * 100 + "%";
@@ -164,16 +165,15 @@ if (!("usb" in navigator)) {
 // 2026-09-17 實機就是這樣失敗的。
 let libraries = null;
 const librariesReady = (async () => {
-  const [adbMod, usbMod, credMod, binMod] = await Promise.all([
+  const [adbMod, credMod, binMod] = await Promise.all([
     import("https://esm.sh/@yume-chan/adb@2.6.4"),
-    import("https://esm.sh/@yume-chan/adb-daemon-webusb@2.3.2"),
     import("https://esm.sh/@yume-chan/adb-credential-web@2.1.0"),
     import("https://esm.sh/@yume-chan/android-bin@2.1.0"),
   ]);
   const loaded = {
     Adb: adbMod.Adb,
     AdbDaemonTransport: adbMod.AdbDaemonTransport,
-    AdbDaemonWebUsbDeviceManager: usbMod.AdbDaemonWebUsbDeviceManager,
+    AdbPacket: adbMod.AdbPacket,
     // 這個是 default export，不是具名匯出
     AdbWebCredentialStore: credMod.default ?? credMod.AdbWebCredentialStore,
     PackageManager: binMod.PackageManager,
@@ -208,6 +208,7 @@ reloadBtn.addEventListener("click", () => location.reload());
 // 一直握著 USB 介面不放——不主動關閉的話，連 adb.exe 都會看不到裝置，
 // 一定要整個分頁關掉才會放。這裡記住目前抓到的裝置，失敗時強制關閉它。
 let activeDevice = null;
+let activeInterfaceNumber = null;
 
 installBtn.addEventListener("click", async () => {
   installBtn.disabled = true;
@@ -218,7 +219,10 @@ installBtn.addEventListener("click", async () => {
     log("失敗：" + (error && error.message ? error.message : error), "warn");
     if (activeDevice) {
       try {
-        await activeDevice.raw.close();
+        // activeDevice 現在是原生 USBDevice（不再是 Tango 的包裝物件，沒有 .raw）。
+        // 關掉之前先放掉介面，否則下一次連線會拿到還被 claim 住的介面。
+        try { await activeDevice.releaseInterface(activeInterfaceNumber); } catch (e) {}
+        await activeDevice.close();
         log("已釋放 USB 連線。");
       } catch (e) {
         // 裝置可能已經斷線，不用特別處理
@@ -231,91 +235,118 @@ installBtn.addEventListener("click", async () => {
   }
 });
 
+// 自己接的 ADB 連線，取代 @yume-chan/adb-daemon-webusb。
+// AdbDaemonTransport.authenticate() 只要一個 { readable, writable }：
+// readable 吐出 { command, arg0, arg1, payload }，writable 收下要送出的封包。
+//
+// 讀：先讀固定 24 位元組的標頭，再照標頭宣告的長度讀 payload。
+//     一定要把 payload 讀完，否則殘料會留在端點裡害下一次連線出錯（實測踩過）。
+// 寫：authenticate() 送進來的封包包在 Consumable 裡，拆開、用 AdbPacket.serialize()
+//     轉成位元組再送出，送完呼叫 consume() 告訴上游可以繼續。
+function makeAdbConnection(device, endpointIn, endpointOut, AdbPacket) {
+  const readable = new ReadableStream({
+    async pull(controller) {
+      for (;;) {
+        const head = await device.transferIn(endpointIn.endpointNumber, 24);
+        if (!head.data || head.data.byteLength < 24) continue;
+        const view = head.data;
+        const command = view.getUint32(0, true);
+        const arg0 = view.getUint32(4, true);
+        const arg1 = view.getUint32(8, true);
+        const payloadLength = view.getUint32(12, true);
+        let payload = new Uint8Array(0);
+        if (payloadLength > 0) {
+          const body = await device.transferIn(endpointIn.endpointNumber, payloadLength);
+          payload = new Uint8Array(
+            body.data.buffer.slice(body.data.byteOffset, body.data.byteOffset + body.data.byteLength),
+          );
+        }
+        controller.enqueue({ command, arg0, arg1, payload });
+        return;
+      }
+    },
+  });
+
+  const writable = new WritableStream({
+    async write(chunk) {
+      const wrapped = chunk && typeof chunk.consume === "function";
+      const packet = wrapped ? chunk.value : chunk;
+      const bytes = AdbPacket.serialize(packet);
+      await device.transferOut(endpointOut.endpointNumber, bytes);
+      // 長度剛好是端點封包大小的整數倍時，要補一個空包告訴對方「這包送完了」。
+      if (bytes.length !== 0 && bytes.length % endpointOut.packetSize === 0) {
+        await device.transferOut(endpointOut.endpointNumber, new Uint8Array(0));
+      }
+      if (wrapped) chunk.consume();
+    },
+  });
+
+  return { readable, writable };
+}
+
 async function run() {
   // **第一件事就是跳選裝置的視窗**，不要先做任何會花時間的事——
   // 瀏覽器的授權期很短，中間插一個網路請求就會過期。
   if (!libraries) throw new Error("安裝程式還在載入，請等按鈕變成可按再試");
-  const { Adb, AdbDaemonTransport, AdbDaemonWebUsbDeviceManager, AdbWebCredentialStore, PackageManager } = libraries;
+  const { Adb, AdbDaemonTransport, AdbPacket, AdbWebCredentialStore, PackageManager } = libraries;
 
-  const manager = AdbDaemonWebUsbDeviceManager.BROWSER;
-  if (!manager) throw new Error("這個瀏覽器不支援 WebUSB");
+  // 2026-09-18：這裡原本用 @yume-chan/adb-daemon-webusb 的 requestDevice() + connect()。
+  // 實測（探針 5）證實那個套件的寫入端在這個環境下會把封包序列化成空的：
+  // transferOut 收到 byteLength=0 的 Uint8Array，回報 status=ok、已寫入 0，
+  // 於是 CNXN 從未離開電腦，頭盔什麼都沒收到，authenticate() 就永遠等下去——
+  // 全程沒有錯誤、沒有斷線、頭盔也不會跳授權框。
+  //
+  // 探針 6 證實：改用原生 WebUSB 自己接連線就完全正常，
+  // 頭盔會跳授權框，握手在按下允許後隨即完成。
+  // 所以這裡不用那個套件，只保留 @yume-chan/adb 的協定實作。
+  const ADB_INTERFACE = { classCode: 0xff, subclassCode: 0x42, protocolCode: 0x01 };
 
   statusEl.textContent = "請在跳出的視窗選擇你的頭盔。";
   log("等待選擇裝置…");
-  const device = await manager.requestDevice();
+  const device = await navigator.usb.requestDevice({ filters: [ADB_INTERFACE] });
   if (!device) throw new Error("沒有選擇裝置（視窗被關掉，或清單裡沒有頭盔）");
   activeDevice = device;
-  log("裝置：" + (device.name || "Quest"));
+  log("裝置：" + (device.productName || "Quest"));
 
   statusEl.textContent = "連線中。如果頭盔跳出「允許 USB 偵錯」，請戴上頭盔按允許。";
-  log("連線中…（頭盔上可能要按「允許 USB 偵錯」）");
-  const rawConnection = await device.connect();
+  await device.open();
+  if (device.configuration === null) await device.selectConfiguration(1);
+
+  let adbInterface = null;
+  for (const itf of device.configuration.interfaces) {
+    for (const alt of itf.alternates) {
+      if (alt.interfaceClass === ADB_INTERFACE.classCode &&
+          alt.interfaceSubclass === ADB_INTERFACE.subclassCode &&
+          alt.interfaceProtocol === ADB_INTERFACE.protocolCode) {
+        adbInterface = { itf, alt };
+      }
+    }
+  }
+  if (!adbInterface) throw new Error("這台裝置上找不到 ADB 介面。請確認頭盔的開發者模式是開著的。");
+
+  await device.claimInterface(adbInterface.itf.interfaceNumber);
+  activeInterfaceNumber = adbInterface.itf.interfaceNumber;
+  const endpointIn = adbInterface.alt.endpoints.find((e) => e.direction === "in" && e.type === "bulk");
+  const endpointOut = adbInterface.alt.endpoints.find((e) => e.direction === "out" && e.type === "bulk");
+  if (!endpointIn || !endpointOut) throw new Error("ADB 介面上找不到進出端點");
   log("USB 已開啟，等待頭盔回應偵錯授權…");
 
-  // 除錯用：把收到的原始 ADB 封包印出來，這樣卡住時能看出
-  // 究竟是頭盔完全沒回應、還是有回應但卡在協商的哪一步。
-  // rawConnection.readable 只有 getter、不能直接改寫，
-  // 所以另外組一個 {readable, writable} 物件傳給 authenticate（它只需要這兩個欄位）。
-  let connection = rawConnection;
-  try {
-    const [passthrough, tap] = rawConnection.readable.tee();
-
-    // 送出去的封包包在 Consumable 裡（給下游做緩衝區回收用）。
-    // 只偷看 .value 記錄，原封不動轉給真正的 writer，
-    // 不要自己呼叫 .consume()——那是真正處理完資料的那一端該做的事。
-    const realWriter = rawConnection.writable.getWriter();
-    const spyWritable = new WritableStream({
-      async write(chunk) {
-        try {
-          log(
-            "封包 -> " +
-              JSON.stringify(chunk.value, (_key, v) => (v instanceof Uint8Array ? "<" + v.length + " bytes>" : v)),
-          );
-        } catch (e) {
-          // 記錄失敗不該擋到真正的傳輸
-        }
-        await realWriter.write(chunk);
-      },
-      async close() {
-        await realWriter.close();
-      },
-      async abort(reason) {
-        await realWriter.abort(reason);
-      },
-    });
-
-    connection = { readable: passthrough, writable: spyWritable };
-    (async () => {
-      const reader = tap.getReader();
-      try {
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          log(
-            "封包 <- " +
-              JSON.stringify(value, (_key, v) => (v instanceof Uint8Array ? "<" + v.length + " bytes>" : v)),
-          );
-        }
-      } catch (e) {
-        // 連線關閉或出錯時 tee 出來的分支也會跟著結束，不用特別處理
-      }
-    })();
-  } catch (e) {
-    log("（無法窺視底層封包：" + (e && e.message ? e.message : e) + "）");
-  }
+  const connection = makeAdbConnection(device, endpointIn, endpointOut, AdbPacket);
 
   const credential = new AdbWebCredentialStore("VRTwKeyboard");
+  // 20 秒不夠：戴上頭盔、找到那個授權框，本來就不只 20 秒，
+  // 等於人還沒來得及回答就先被判定失敗。
   const authTimeout = new Promise((_, reject) =>
     setTimeout(
       () =>
         reject(
           new Error(
-            "等了 20 秒頭盔都沒回應。請戴上頭盔看有沒有跳出「允許 USB 偵錯」的視窗並按允許；" +
-              "如果沒有跳出，去頭盔的「設定 > 系統 > 開發人員」確認 USB 偵錯是開著的，" +
-              "然後按「重新開始」再試一次。",
+            "等了 90 秒沒等到頭盔授權。請戴上頭盔，看畫面上有沒有「允許 USB 偵錯」，" +
+              "勾「一律允許」再按允許；如果頭盔裡根本沒跳出那個視窗，" +
+              "去「設定 > 系統 > 開發人員」把 USB 偵錯關掉再打開，然後按「重新開始」。",
           ),
         ),
-      20000,
+      90000,
     ),
   );
   const transport = await Promise.race([
@@ -330,21 +361,25 @@ async function run() {
   log("已連線", "ok");
 
   statusEl.textContent = "取得最新版本…";
-  log("查詢最新 release…");
-  const release = await fetch("https://api.github.com/repos/" + REPO + "/releases/latest", {
-    headers: { Accept: "application/vnd.github+json" },
-  }).then((r) => {
-    if (!r.ok) throw new Error("查不到 release（HTTP " + r.status + "）");
+  log("讀取版本資訊…");
+  // 2026-09-18：原本是查 GitHub API 再抓 release 附件。那條路在瀏覽器裡走不通——
+  // 附件網址最後會轉址到 release-assets.githubusercontent.com，
+  // 而那個回應「完全沒有」Access-Control-Allow-Origin 標頭（實測 curl 確認），
+  // 所以瀏覽器一律擋下，錯誤訊息只有一句沒頭沒尾的 "Failed to fetch"。
+  // adb.exe 與 SideQuest 沒這個問題，因為它們不是瀏覽器、不受同源政策管。
+  //
+  // 改成 APK 跟這一頁放在一起，由 GitHub Pages 供檔：同一個來源，沒有跨來源問題，
+  // 也不必依賴 GitHub API（它對未登入的呼叫每小時只給 60 次）。
+  const manifest = await fetch("latest.json", { cache: "no-cache" }).then((r) => {
+    if (!r.ok) throw new Error("讀不到版本資訊（HTTP " + r.status + "）");
     return r.json();
   });
-  const asset = (release.assets || []).find((a) => a.name.toLowerCase().endsWith(".apk"));
-  if (!asset) throw new Error(release.tag_name + " 沒有附 APK");
-  log("版本 " + release.tag_name + "　" + (asset.size / 1048576).toFixed(1) + " MB");
+  log("版本 " + manifest.version + "　" + (manifest.size / 1048576).toFixed(1) + " MB");
 
   statusEl.textContent = "下載 APK…";
-  const response = await fetch(asset.browser_download_url);
+  const response = await fetch(manifest.file);
   if (!response.ok) throw new Error("下載失敗（HTTP " + response.status + "）");
-  const total = asset.size;
+  const total = manifest.size;
   const reader = response.body.getReader();
   const chunks = [];
   let received = 0;
@@ -384,9 +419,8 @@ Android 不允許直接覆蓋，必須先移除舊版。
       log("移除舊版…");
       await pm.uninstall("tw.pinnedbopomofo.quest");
       log("已移除，重新安裝…");
-      const retry = await fetch(asset.browser_download_url);
-      if (!retry.ok) throw new Error("重新下載失敗（HTTP " + retry.status + "）");
-      await pm.installStream(asset.size, retry.body);
+      // APK 已經在記憶體裡了，不必再抓一次 40 MB——Blob 可以再吐一條新的串流。
+      await pm.installStream(apk.size, apk.stream());
     } else {
       throw error;
     }
