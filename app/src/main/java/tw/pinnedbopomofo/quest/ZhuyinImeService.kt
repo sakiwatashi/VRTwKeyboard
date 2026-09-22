@@ -45,6 +45,7 @@ import tw.pinnedbopomofo.quest.effects.GlowView
 import tw.pinnedbopomofo.quest.effects.KeyboardEffects
 import tw.pinnedbopomofo.quest.engine.Composer
 import tw.pinnedbopomofo.quest.engine.Engine
+import tw.pinnedbopomofo.quest.engine.EngineSnapshot
 import tw.pinnedbopomofo.quest.engine.HomophoneCorrector
 import tw.pinnedbopomofo.quest.engine.Lexicon
 import tw.pinnedbopomofo.quest.engine.LoadTimer
@@ -1594,6 +1595,8 @@ class ZhuyinImeService : InputMethodService() {
     companion object {
         private const val TAG = "ZhuyinIme"
         private const val PERF_TAG = "ZhuyinPerf"
+        /** 由 EngineSnapshotTest 從 JSON 產生。打包進 APK 時 .gz 會被解開、副檔名去掉，open 兩種名字都試 */
+        private const val SNAPSHOT_ASSET = "engine_snapshot.bin.gz"
         private const val PERF_PICK = "pick"
         /** 配色色塊一排幾個。 */
         private const val SWATCHES_PER_ROW = 5
@@ -1622,9 +1625,12 @@ class ZhuyinImeService : InputMethodService() {
             }
             val timer = LoadTimer()
             val start = System.nanoTime()
-            val lexicon = Lexicon.load(open, timer)
+            // 先讀建好的快照；讀不到（缺檔、壞檔、格式版本不符）才退回從 JSON 解析，見 EngineSnapshot
+            val snapshot = EngineSnapshot.read(open, SNAPSHOT_ASSET, timer)
+            if (snapshot == null) Log.w(TAG, "engine snapshot unavailable, falling back to JSON")
+            val lexicon = snapshot?.lexicon ?: Lexicon.load(open, timer)
             val lexiconDone = System.nanoTime()
-            val predictor = Predictor.load(open, timer)
+            val predictor = snapshot?.predictor ?: Predictor.load(open, timer)
             val done = System.nanoTime()
             // 沒有先強制回收，heap 含還沒清掉的解析暫存；PSS 是整個程序實際佔用的記憶體
             val runtime = Runtime.getRuntime()

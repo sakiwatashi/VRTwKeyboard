@@ -4,7 +4,7 @@ package tw.pinnedbopomofo.quest.engine
  * 聯想詞：送出一個字之後，列出最常接在它後面的字或詞。
  * 主要排序來自 Rime Essay 高頻詞，再用教育部台灣詞頻修正簡轉繁語料的偏差。
  */
-class Predictor private constructor(private val next: Map<String, List<String>>) {
+class Predictor internal constructor(internal val next: Map<String, List<String>>) {
 
     fun after(text: String): List<String> {
         val last = text.characters().lastOrNull() ?: return emptyList()

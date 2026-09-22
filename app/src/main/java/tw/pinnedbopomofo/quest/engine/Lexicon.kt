@@ -7,14 +7,15 @@ package tw.pinnedbopomofo.quest.engine
  * 手機式輸入另外允許不完整的音節：省略聲調（ㄉㄚ）或只打開頭（ㄉ）。
  * 這時比對所有符合的完整讀音，同一個詞取最高的權重。
  */
-class Lexicon private constructor(
-    private val entries: Map<String, List<Row>>,
-    private val extra: Map<String, Map<String, Int>>,
-    private val taiwan: Map<String, Map<String, Int>>,
-    private val polyphones: Map<String, Map<String, Int>>,
-    private val demoted: Set<String>,
+class Lexicon internal constructor(
+    internal val entries: Map<String, List<Row>>,
+    internal val extra: Map<String, Map<String, Int>>,
+    internal val taiwan: Map<String, Map<String, Int>>,
+    internal val polyphones: Map<String, Map<String, Int>>,
+    internal val demoted: Set<String>,
+    index: Map<String, List<String>>? = null,
 ) {
-    private class Row(val phrase: String, val weight: Int)
+    internal class Row(val phrase: String, val weight: Int)
 
     /** 排好序的清單與查權重的表必須是同一組數字，所以一起算、一起快取。 */
     private class Cached(val rows: List<Row>, val table: Map<String, Int>)
@@ -22,8 +23,11 @@ class Lexicon private constructor(
     private val cache = HashMap<String, Cached>()
     private val patternCache = HashMap<String, Cached>()
 
-    /** 各音節的第一個符號 → 完整讀音。不完整的音節至少打了第一個符號，先用它縮小範圍。 */
-    private val byLeadingSymbols: Map<String, List<String>> = buildIndex()
+    /**
+     * 各音節的第一個符號 → 完整讀音。不完整的音節至少打了第一個符號，先用它縮小範圍。
+     * 快照（[EngineSnapshot]）會把建好的索引一起帶進來，省掉掃過全部讀音的時間。
+     */
+    internal val byLeadingSymbols: Map<String, List<String>> = index ?: buildIndex()
 
     /**
      * 掃過全部讀音建索引。不切字串：14.7 萬個讀音各 split 一次，在頭盔上要 2.5 秒、佔冷啟動三成

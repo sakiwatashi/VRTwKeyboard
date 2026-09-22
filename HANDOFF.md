@@ -204,6 +204,25 @@ tools/fetch-deps.ps1                下載 AAR
 tools/make-banner.py                產生上架橫幅
 ```
 
+### 詞庫快照（改了 assets 的 JSON 一定要重產）
+
+App 啟動讀的是 `assets/engine_snapshot.bin.gz`——Lexicon／Predictor **建好之後**的表，不是 JSON。
+JSON 仍是唯一資料來源，快照由測試產生：
+
+```powershell
+$env:REGENERATE_ENGINE_SNAPSHOT = '1'
+gradle :app:testDebugUnitTest --tests '*EngineSnapshotTest*' --rerun-tasks --console=plain
+Remove-Item Env:REGENERATE_ENGINE_SNAPSHOT
+```
+
+改了 JSON 或 `Lexicon.load`／`Predictor.load` 卻忘了重產，`EngineSnapshotTest` 的同步測試會紅。
+改了快照格式要把 `EngineSnapshot.FORMAT_VERSION` 加一。
+
+**快照照記憶體裡的走訪順序寫、不排序，這是刻意的**：同分讀音的先後取決於 HashMap 走訪順序
+（實測「鶽」三個讀音同分，順序一換同音修正就變）。另外 Android 內建的 org.json 保留檔案順序、
+測試用的 org.json 不保留，所以改用快照之前，頭盔上的同分順序其實跟測試驗的不一定一樣；
+現在頭盔讀的就是測試逐字驗過的那一份。
+
 ### 配色模型有個陷阱
 
 配色有 `text`（鍵帽字）、`panelText`（面板上的候選字）、`panelAccent`（組字中的字）。
@@ -270,7 +289,12 @@ gradle testDebugUnitTest --rerun-tasks --console=plain
 - 語音辨識的英文專有名詞會被拆壞（Paraformer 不支援 hotwords，無解）
 - 聯想詞不會學習；沒有游標移動與句中修改
 - 載入模型後記憶體約 382 MB，**閒置時不會釋放**
-- 詞庫是 JSON，冷啟動約 6.75 秒。二進位快取可以壓到 ~1 秒，**還沒做**
+- ~~詞庫是 JSON，冷啟動約 6.75 秒~~ → 2026-09-23 改成啟動時讀二進位快照
+  `assets/engine_snapshot.bin.gz`（見 §7「詞庫快照」）。桌機 JVM 上 274～439 ms → 63～150 ms；
+  **頭盔上還沒量**，下次接上頭盔先跑 `tools\measure-perf.ps1` 看 `perf loadSplit` 有沒有
+  `snapshot.read`／`snapshot.decode`（有＝走快照；出現 `phrases.parse`＝退回 JSON 了，查 logcat 的
+  `engine snapshot unavailable`）。量到確定沒問題後，JSON 可以用 `androidResources.ignoreAssetsPattern`
+  排除出 APK，省約 3.7 MB（快照本身在 APK 裡佔 3.8 MB）
 
 **授權未定論**
 
