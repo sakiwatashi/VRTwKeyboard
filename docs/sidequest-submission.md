@@ -55,9 +55,9 @@ Quest 內建的鍵盤不支援注音，要打中文只能一個字一個字慢�
 辨識完全在頭盔上跑，聲音不會離開你的裝置。
 輸出是臺灣正體。
 
-■ 十一套配色、八種特效
+■ 十套配色、九種特效
 從乾淨的淺色系統風到用美術圖做的青玉山水都有。
-特效可以單獨開關：輝光、粒子、飛字、漣漪、傾斜、流光、聲波、煙霧。
+特效可以單獨開關：輝光、粒子、飛字、漣漪、傾斜、流光、聲波、煙霧、衝擊波。
 
 ■ 開源
 Apache-2.0。原始碼、詞庫、建置方式全部公開：
@@ -93,10 +93,10 @@ when it isn't in the dictionary as a phrase.
 Press the microphone and speak. Recognition runs entirely on the headset —
 audio never leaves your device. Output is Traditional Chinese (Taiwan).
 
-■ 11 themes, 8 toggleable effects
+■ 10 themes, 9 toggleable effects
 From a clean light system look to a hand-illustrated jade landscape.
 Effects: bloom, particles, flying glyphs, ripple, tilt, sheen, voice
-waveform, mist.
+waveform, mist, shockwave.
 
 ■ Open source, Apache-2.0
 https://github.com/sakiwatashi/VRTwKeyboard
