@@ -11,7 +11,7 @@
 ## 1. 一句話現況
 
 **專案已經公開發佈，App 也已經裝上頭盔可以用了。** 程式在 Meta Quest 3S（Horizon OS 2.7）上：
-注音整句選字、離線語音輸入、十一套配色、八種特效。
+注音整句選字、離線語音輸入、十套配色、八種特效。
 
 公開位置：
 
@@ -19,7 +19,11 @@
 |---|---|---|
 | 原始碼 | https://github.com/sakiwatashi/VRTwKeyboard | Apache-2.0，已公開 |
 | 安裝頁 | https://sakiwatashi.github.io/VRTwKeyboard/ | 已上線，**但還沒成功裝過一次，見下方 §2、§9** |
-| Release | https://github.com/sakiwatashi/VRTwKeyboard/releases/tag/v0.2.0 | 附簽章 APK |
+| Release | https://github.com/sakiwatashi/VRTwKeyboard/releases/latest | 最新是 **v0.2.1**（09-18），附簽章 APK |
+
+標籤三個，都在 `main` 歷史上：`quest-keyboard-v0.1`、`v0.2.0`、`v0.2.1`。
+程式裡 `versionCode = 3` / `versionName = "0.2.1"`，跟最新標籤一致。
+**`main` 現在的 HEAD 比 v0.2.1 新但沒有標籤**（README 修正等文件變更，還沒發版）。
 
 **2026-09-18 凌晨：改用 `adb.exe install -r` 直接把 v0.2.0 APK 裝上頭盔，成功（回 `Success`）。**
 這條路跳過了網頁安裝器，是為了不讓「網頁安裝器卡住」擋住「App 能不能用」——兩件事現在是分開的。
@@ -178,7 +182,12 @@ repo 上目前**沒有**這個 webhook。
 
 **每次發新版一定要把 `versionCode` 加一。** Android 用它判斷新舊，
 `versionName` 只是給人看的。忘了加，SideQuest 與 App 自我更新都會失效。
-`versionName` 要跟 release tag 對得起來（0.2.0 ↔ v0.2.0）。
+`versionName` 要跟 release tag 對得起來（目前 0.2.1 ↔ v0.2.1）。
+
+**標籤要自己補推。**`git subtree split` 只送 commit，不會帶標籤過去，
+所以發版時要另外 `git push <VRTwKeyboard> <split後的commit>:refs/tags/vX.Y.Z`。
+反過來也一樣：遠端建的標籤本地不會有（`v0.2.1` 就這樣缺了三週），
+要 `git fetch <VRTwKeyboard> refs/tags/vX.Y.Z:refs/tags/vX.Y.Z` 補回來。
 
 ---
 
@@ -188,8 +197,8 @@ repo 上目前**沒有**這個 webhook。
 app/src/main/java/tw/pinnedbopomofo/quest/
 ├─ ZhuyinImeService.kt   輸入法本體：版面、按鍵、候選列、分頁選單、特效接線
 ├─ MainActivity.kt       設定畫面。**唯一會用到網路的地方**：下載模型、檢查更新
-├─ KeyboardTheme.kt      十一套配色、對比度計算（WCAG）
-├─ KeycapArt.kt          程式繪製的鍵帽（磚塊、霓虹、竹簡、青玉、平面）
+├─ KeyboardTheme.kt      十套配色、對比度計算（WCAG）
+├─ KeycapArt.kt          程式繪製的鍵帽（磚塊、霓虹、青玉、平面）
 ├─ KeyboardSizing.kt     面板尺寸計算
 ├─ engine/               選字引擎：詞網格、詞庫、近音修正
 ├─ voice/                語音：錄音、能量式 VAD、Paraformer、簡繁轉換
@@ -226,7 +235,7 @@ Remove-Item Env:REGENERATE_ENGINE_SNAPSHOT
 ### 配色模型有個陷阱
 
 配色有 `text`（鍵帽字）、`panelText`（面板上的候選字）、`panelAccent`（組字中的字）。
-**面板與鍵帽明暗相反的配色**（竹簡、青玉、素白）一定要分別指定，
+**面板與鍵帽明暗相反的配色**（青玉、素白）一定要分別指定，
 否則會出現「白字配白底」。三套配色都因此出過事，現在有對比度測試擋著。
 
 ---
