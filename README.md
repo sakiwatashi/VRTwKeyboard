@@ -13,107 +13,8 @@
 
 ---
 
-## English
-
-**VRTwKeyboard** is a Traditional Chinese (Bopomofo / Zhuyin) input method for
-Meta Quest, built as an Android `InputMethodService`. It uses the standard
-**Dachen layout** — the same one Microsoft Bopomofo uses on Windows — so there is
-nothing new to learn. The whole UI is drawn in code and operated with controller
-rays or hand tracking.
-
-Quest's built-in keyboard has no Bopomofo support, so typing Chinese on a headset
-otherwise means hunting for characters one at a time.
-
-### Install
-
-**→ [sakiwatashi.github.io/VRTwKeyboard](https://sakiwatashi.github.io/VRTwKeyboard/)**
-
-**A Quest cannot install an APK by itself.** No app on the headset holds the
-`REQUEST_INSTALL_PACKAGES` permission (we checked every package), and Meta lists
-it as prohibited — so a PC and a USB cable are always required.
-
-The page above is a **WebUSB installer**: open it in Chrome or Edge, plug the
-headset in, press one button. It speaks the ADB protocol from the browser, so you
-do not need `adb`, SideQuest, or Python. Enable **Developer Mode** first (Meta
-Horizon phone app → Devices → your headset → Developer Mode) and allow USB
-debugging when the headset asks.
-
-Prefer to do it yourself? Grab the APK from
-[Releases](https://github.com/sakiwatashi/VRTwKeyboard/releases/latest) and run
-`adb install -r VRTwKeyboard-vX.Y.Z.apk`. Each release lists its SHA256.
-
-Then open the **注音輸入法** app on the headset, tap **開啟鍵盤設定** (the first
-button) and switch the keyboard on. Horizon OS hijacks the standard input-method
-settings shortcut, so that button exists precisely to reach the real settings page.
-
-### Features
-
-- **Whole-sentence conversion.** The engine scores every possible segmentation
-  against modern word frequencies instead of converting syllable by syllable, so
-  a full sentence comes out right even when it is not in the dictionary as a
-  phrase. Near-miss syllables are corrected too.
-- **Offline voice input.** Press the microphone and speak; a one-second pause
-  commits. Recognition runs on the headset (streaming Paraformer via
-  sherpa-onnx) and the audio never leaves the device. Output is Traditional
-  Chinese (Taiwan), converted from the model's Simplified output with OpenCC.
-- **10 themes and 9 toggleable effects** — bloom, particles, flying glyphs,
-  ripple, tilt, sheen, voice waveform, mist and a shockwave — from a plain light
-  theme to a hand-illustrated jade landscape.
-- Emoji page, per-field behaviour (search fields show a 搜尋 enter key, password
-  fields switch to Latin), and a built-in diagnostics tab.
-
-### Privacy
-
-Recognition is local, and nothing you type is uploaded. The app does hold the
-`INTERNET` permission, so rather than asking you to take that on trust: only two
-files in this repository open a connection —
-[`net/Downloader.kt`](app/src/main/java/tw/pinnedbopomofo/quest/net/Downloader.kt)
-(the speech model) and
-[`net/Updater.kt`](app/src/main/java/tw/pinnedbopomofo/quest/net/Updater.kt)
-(the version check) — and both are reachable only from `MainActivity`. The
-service that sees your keystrokes, `ZhuyinImeService`, never touches either.
-Verify it yourself:
-
-```bash
-grep -rn "HttpURLConnection\|URL(" app/src/main/java/
-```
-
-The two hosts are hardcoded: Hugging Face for the model, the GitHub API for the
-release tag.
-
-### Known limitations
-
-- **English proper nouns get mangled** by the speech model ("Minecraft" →
-  "MCRAFT"). Paraformer has no hotword support, so there is no workaround today.
-- No learned predictions, and no mid-sentence cursor editing yet.
-- The speech model is a separate 226 MB download, done in-headset from the app.
-- Tested on **Quest 3S / Horizon OS 2.7**. There is no device-specific code, but
-  no other headset has been verified.
-- **Not on the Horizon Store, and it cannot be.** `BIND_INPUT_METHOD` is on
-  Meta's prohibited-permission list, so third-party IMEs fail store validation.
-
-### Build
-
-Needs JDK 17+, the Android SDK, and Gradle 9. `./tools/fetch-deps.ps1` pulls the
-sherpa-onnx AAR (50 MB, not in version control, SHA256-verified); then
-`gradle testDebugUnitTest assembleDebug`. The Bopomofo lexicon is vendored in
-`app/src/main/assets`, so a fresh clone builds and tests without extra setup.
-154 unit tests.
-
-### License
-
-[Apache-2.0](LICENSE). Third-party components, including the lexicon's upstream
-LGPL chain, are audited in
-[`docs/licenses/third-party.md`](docs/licenses/third-party.md) — read it before
-any commercial use.
-
-*Everything below is in Traditional Chinese.*
-
----
-
 ## 目錄
 
-- [English](#english)
 - [安裝](#安裝)
 - [啟用輸入法](#啟用輸入法)
 - [打字教學](#打字教學)
@@ -122,6 +23,7 @@ any commercial use.
 - [從原始碼建置](#從原始碼建置)
 - [疑難排解](#疑難排解)
 - [授權](#授權)
+- [English](#english)
 
 ---
 
@@ -502,3 +404,101 @@ adb logcat -s ZhuyinIme:*
 - Horizon OS 沒有跨視窗模糊，毛玻璃只能用半透明模擬
 - 語音模型必須用電腦部署，App 端沒有下載功能（這是刻意的，見上方）
 - 只有 debug 簽章，沒有 release 設定
+
+---
+
+## English
+
+**VRTwKeyboard** is a Traditional Chinese (Bopomofo / Zhuyin) input method for
+Meta Quest, built as an Android `InputMethodService`. It uses the standard
+**Dachen layout** — the same one Microsoft Bopomofo uses on Windows — so there is
+nothing new to learn. The whole UI is drawn in code and operated with controller
+rays or hand tracking.
+
+Quest's built-in keyboard has no Bopomofo support, so typing Chinese on a headset
+otherwise means hunting for characters one at a time.
+
+### Install
+
+**→ [sakiwatashi.github.io/VRTwKeyboard](https://sakiwatashi.github.io/VRTwKeyboard/)**
+
+**A Quest cannot install an APK by itself.** No app on the headset holds the
+`REQUEST_INSTALL_PACKAGES` permission (we checked every package), and Meta lists
+it as prohibited — so a PC and a USB cable are always required.
+
+The page above is a **WebUSB installer**: open it in Chrome or Edge, plug the
+headset in, press one button. It speaks the ADB protocol from the browser, so you
+do not need `adb`, SideQuest, or Python. Enable **Developer Mode** first (Meta
+Horizon phone app → Devices → your headset → Developer Mode) and allow USB
+debugging when the headset asks.
+
+Prefer to do it yourself? Grab the APK from
+[Releases](https://github.com/sakiwatashi/VRTwKeyboard/releases/latest) and run
+`adb install -r VRTwKeyboard-vX.Y.Z.apk`. Each release lists its SHA256.
+
+Then open the **注音輸入法** app on the headset, tap **開啟鍵盤設定** (the first
+button) and switch the keyboard on. Horizon OS hijacks the standard input-method
+settings shortcut, so that button exists precisely to reach the real settings page.
+
+### Features
+
+- **Whole-sentence conversion.** The engine scores every possible segmentation
+  against modern word frequencies instead of converting syllable by syllable, so
+  a full sentence comes out right even when it is not in the dictionary as a
+  phrase. Near-miss syllables are corrected too.
+- **Offline voice input.** Press the microphone and speak; a one-second pause
+  commits. Recognition runs on the headset (streaming Paraformer via
+  sherpa-onnx) and the audio never leaves the device. Output is Traditional
+  Chinese (Taiwan), converted from the model's Simplified output with OpenCC.
+- **10 themes and 9 toggleable effects** — bloom, particles, flying glyphs,
+  ripple, tilt, sheen, voice waveform, mist and a shockwave — from a plain light
+  theme to a hand-illustrated jade landscape.
+- Emoji page, per-field behaviour (search fields show a 搜尋 enter key, password
+  fields switch to Latin), and a built-in diagnostics tab.
+
+### Privacy
+
+Recognition is local, and nothing you type is uploaded. The app does hold the
+`INTERNET` permission, so rather than asking you to take that on trust: only two
+files in this repository open a connection —
+[`net/Downloader.kt`](app/src/main/java/tw/pinnedbopomofo/quest/net/Downloader.kt)
+(the speech model) and
+[`net/Updater.kt`](app/src/main/java/tw/pinnedbopomofo/quest/net/Updater.kt)
+(the version check) — and both are reachable only from `MainActivity`. The
+service that sees your keystrokes, `ZhuyinImeService`, never touches either.
+Verify it yourself:
+
+```bash
+grep -rn "HttpURLConnection\|URL(" app/src/main/java/
+```
+
+The two hosts are hardcoded: Hugging Face for the model, the GitHub API for the
+release tag.
+
+### Known limitations
+
+- **English proper nouns get mangled** by the speech model ("Minecraft" →
+  "MCRAFT"). Paraformer has no hotword support, so there is no workaround today.
+- No learned predictions, and no mid-sentence cursor editing yet.
+- The speech model is a separate 226 MB download, done in-headset from the app.
+- Tested on **Quest 3S / Horizon OS 2.7**. There is no device-specific code, but
+  no other headset has been verified.
+- **Not on the Horizon Store, and it cannot be.** `BIND_INPUT_METHOD` is on
+  Meta's prohibited-permission list, so third-party IMEs fail store validation.
+
+### Build
+
+Needs JDK 17+, the Android SDK, and Gradle 9. `./tools/fetch-deps.ps1` pulls the
+sherpa-onnx AAR (50 MB, not in version control, SHA256-verified); then
+`gradle testDebugUnitTest assembleDebug`. The Bopomofo lexicon is vendored in
+`app/src/main/assets`, so a fresh clone builds and tests without extra setup.
+154 unit tests.
+
+### License
+
+[Apache-2.0](LICENSE). Third-party components, including the lexicon's upstream
+LGPL chain, are audited in
+[`docs/licenses/third-party.md`](docs/licenses/third-party.md) — read it before
+any commercial use.
+
+*Everything below is in Traditional Chinese.*
