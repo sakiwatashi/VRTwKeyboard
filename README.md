@@ -3,7 +3,12 @@
 給 Meta Quest 的注音輸入法。用 Android `InputMethodService` 寫成，介面全部由程式繪製，
 在 Horizon OS 上以手把射線或手勢操作。內建**離線語音輸入**，不連網也能說話打字。
 
-**狀態：可以每天用的原型。**還沒上架商店，安裝要透過 adb。
+**狀態：可以每天用的原型。**沒有上架 Meta 商店（Meta 把輸入法需要的
+`BIND_INPUT_METHOD` 權限列為禁止，第三方輸入法上不了），所以要自己安裝。
+下面第一種方式不必在電腦上裝任何軟體。
+
+**→ [最新版本下載](https://github.com/sakiwatashi/VRTwKeyboard/releases/latest)**
+　|　**[網頁安裝器](https://sakiwatashi.github.io/VRTwKeyboard/)**（開網頁、插線、按一下）
 
 ---
 
@@ -22,36 +27,77 @@
 
 ## 安裝
 
-需要一台開啟開發者模式的 Quest，以及電腦上的 `adb`。
+**Quest 自己裝不了 APK。**頭盔上沒有任何 App 有安裝權限（瀏覽器、檔案管理員都查過），
+Meta 刻意封住了這條路。所以一定要接一台電腦，用 USB 線裝。
 
-### 1. 開啟 Quest 的開發者模式
+下面三種方式都要先做這一步：
+
+### 先開啟 Quest 的開發者模式
 
 手機上的 Meta Horizon App →「裝置」→ 選你的頭盔 →「開發者模式」打開。
-頭盔接上 USB 線，戴上頭盔時會跳出「允許 USB 偵錯」，選允許。
+頭盔接上 USB 線，戴上頭盔時會跳出「允許 USB 偵錯」，**選允許**（可以勾「一律允許」）。
 
-### 2. 一鍵部署
+---
+
+### 方式一：網頁安裝器（推薦，不必安裝任何軟體）
+
+**→ <https://sakiwatashi.github.io/VRTwKeyboard/>**
+
+用 Chrome 或 Edge 打開，按「連接頭盔並安裝」，在瀏覽器跳出的清單裡選你的 Quest。
+APK 會由網頁直接推進頭盔，整個過程不需要 `adb`、不需要 SideQuest、不需要 Python。
+
+原理是 WebUSB：瀏覽器自己講 ADB 協定。網頁是靜態的，程式碼就在這個 repo 的
+[`docs/index.html`](docs/index.html)，APK 直接從本專案的 GitHub Release 抓。
+
+> Firefox 與 Safari 不支援 WebUSB，用那兩個瀏覽器開會直接告訴你不行。
+>
+> 如果你之前裝過開發版（debug 簽章），會跟正式版簽章衝突。網頁會偵測到並問你要不要
+> 移除舊版再裝——移除會清掉舊版的設定，但語音模型不受影響。
+
+### 方式二：自己下載 APK 用 adb 裝
+
+適合已經有 `adb` 的人。先從
+[Releases](https://github.com/sakiwatashi/VRTwKeyboard/releases/latest) 下載
+`VRTwKeyboard-vX.Y.Z.apk`，然後：
 
 ```powershell
-.\tools\deploy.ps1
+adb install -r VRTwKeyboard-v0.2.0.apk
+adb shell pm list packages | Select-String pinnedbopomofo
 ```
 
-這支腳本會做完全部四件事：下載語音模型（約 226 MB，含 SHA256 驗證，會快取）、
+Release 頁面上有該檔案的 SHA256，建議核對一下：
+
+```powershell
+Get-FileHash VRTwKeyboard-v0.2.0.apk -Algorithm SHA256
+```
+
+### 方式三：開發者的一鍵部署
+
+這個方式會連語音模型一起推進去（省掉頭盔內下載 226 MB），
+但要先 clone 這個 repo。詳見下面的[從原始碼建置](#從原始碼建置)。
+
+```powershell
+./tools/deploy.ps1
+```
+
+這支腳本做完全部四件事：下載語音模型（約 226 MB，含 SHA256 驗證，會快取）、
 安裝 APK、把模型推進頭盔、啟用輸入法。找不到 `adb` 的話會自動去找 SideQuest 內附的那份。
 
 只想裝鍵盤、不要語音：
 
 ```powershell
-.\tools\deploy.ps1 -SkipModels
+./tools/deploy.ps1 -SkipModels
 ```
 
-或者手動裝：
+---
 
-```powershell
-adb install -r app-debug.apk
-adb shell pm list packages | Select-String pinnedbopomofo
-```
+### 裝好之後
 
-### 3.（選用）改用無線連線
+方式一與方式二裝完**還沒有語音模型**。戴上頭盔，打開「注音輸入法」App，
+按「下載語音模型」，App 會自己從網路抓（226 MB，有進度與續傳，不必接電腦）。
+只打注音不用語音的話可以跳過這一步。
+
+### （選用）改用無線連線
 
 拔線之前先開無線偵錯，之後就不用一直插著：
 
@@ -67,8 +113,15 @@ adb connect <頭盔的IP>:5555
 
 ## 啟用輸入法
 
+### 在頭盔裡做（不需要電腦）
+
+戴上頭盔，打開「**注音輸入法**」App，按「**開啟鍵盤設定**」。
+App 會幫你跳到正確的系統頁面，接著照下面的清單操作。
+
+### 或者從電腦下指令
+
 這一步在 Quest 上有個坑：Horizon OS 把標準的「輸入法設定」捷徑攔走了，
-點下去只會跳回 vrshell。要**指名開啟原生設定頁**：
+點下去只會跳回 vrshell。要**指名開啟原生設定頁**（App 裡那顆按鈕做的就是這件事）：
 
 ```powershell
 adb shell am start -n com.android.settings/.Settings`$AvailableVirtualKeyboardActivity
@@ -77,11 +130,15 @@ adb shell am start -n com.android.settings/.Settings`$AvailableVirtualKeyboardAc
 > PowerShell 裡的 `$` 要用反引號跳脫（`` `$ ``）。
 > 在 bash 裡則是寫成 `Settings\$AvailableVirtualKeyboardActivity`。
 
+### 清單出現之後
+
 頭盔上會出現「虛擬鍵盤」清單：
 
 1. 把 **注音輸入法** 打開
 2. 系統會警告「這個輸入法可以收集你輸入的文字」——這是所有第三方輸入法都會有的
-   標準警告。本程式**不連網、不上傳任何東西**，語音辨識也完全在裝置上跑
+   標準警告。這個程式不會上傳你輸入的任何東西，語音辨識也完全在裝置上跑；
+   網路只用在下載語音模型與檢查新版本，細節與自行核對的方法見
+   [隱私：網路權限用在哪裡](#隱私網路權限用在哪裡)
 3. 回到任何可以打字的地方，點一下輸入框
 4. 如果還是跳出系統鍵盤，按鍵盤上的**切換輸入法**鍵，或執行：
 
@@ -133,23 +190,39 @@ adb shell ime set tw.pinnedbopomofo.quest/.ZhuyinImeService
 
 ## 語音輸入
 
-**完全離線**。聲音不會離開頭盔，沒有任何連網行為。
+**辨識完全在頭盔上跑**，聲音不會離開裝置。
 
 ### 第一次使用
 
-1. **模型要先用電腦推進去**——`.\tools\deploy.ps1` 會處理。
-   App **不會自己下載**，因為它根本沒有網路權限（見下方說明）
-2. 開啟 App 本體（應用程式清單裡的「注音輸入法」），授予**麥克風權限**。
+1. 開啟 App 本體（應用程式清單裡的「注音輸入法」），授予**麥克風權限**。
    輸入法自己跳不出權限對話框，一定要從 App 裡給
+2. 按「**下載語音模型**」（約 226 MB，有進度條、可續傳、下載完會比對 SHA256）。
+   用 `./tools/deploy.ps1` 裝的話模型已經在裡面了，跳過這步
 3. 回到鍵盤，按 `🎤`
 
-### 為什麼模型不由 App 自己下載
+### 隱私：網路權限用在哪裡
 
-輸入法看得到你打的每一個字。這個 App 的 `AndroidManifest.xml` 裡**只有
-`RECORD_AUDIO` 一項權限，沒有 `INTERNET`**——它在技術上就沒有能力把任何東西送出去，
-不必只靠我們口頭保證。
+這個 App 有 `INTERNET` 權限，所以不能只說「技術上做不到」就算了。
+實際情況可以自己查證：
 
-代價是模型得由電腦端的腳本下載再推進去。我們認為這個交換划算。
+- 整個 repo 裡**只有兩個檔案會發出網路請求**：
+  [`net/Downloader.kt`](app/src/main/java/tw/pinnedbopomofo/quest/net/Downloader.kt)（下載模型）與
+  [`net/Updater.kt`](app/src/main/java/tw/pinnedbopomofo/quest/net/Updater.kt)（檢查新版本）
+- 這兩個檔案**只有 `MainActivity` 用得到**。看得到你輸入內容的
+  `ZhuyinImeService` 一行都沒碰，連 import 都沒有
+- 連出去的目標只有兩個網域，寫死在程式裡：Hugging Face（模型）與
+  GitHub API（版本號）。兩者都不帶任何輸入內容
+- 語音辨識是本機的 sherpa-onnx 推論，沒有任何雲端 API
+
+自己核對：
+
+```bash
+grep -rn "HttpURLConnection\|URL(" app/src/main/java/
+```
+
+早期版本完全沒有 `INTERNET` 權限，模型只能用電腦推。加上權限是為了讓
+不會用 adb 的人也能裝（見[安裝](#安裝)），代價就是上面這段要用「可稽核」
+代替「不可能」。原始碼公開就是為了這個。
 
 ### 使用
 
@@ -173,7 +246,7 @@ adb shell ime set tw.pinnedbopomofo.quest/.ZhuyinImeService
 
 ### 外觀
 
-- **十一套配色**：暖茶、抹茶、靛夜、霧櫻、石墨金、無彩、磚塊、竹簡、青玉、素白、霓虹
+- **十套配色**：暖茶、抹茶、靛夜、霧櫻、石墨金、無彩、磚塊、青玉、素白、霓虹
   - **青玉**是用美術圖做的（背景板、鍵帽、候選條、山水空白鍵）
   - **磚塊**是瑪利歐風格的交錯磚
   - **霓虹**是夜市燈牌，配「輝光」特效才完整
@@ -239,7 +312,7 @@ gradle testDebugUnitTest --rerun-tasks --console=plain
 app/src/main/java/tw/pinnedbopomofo/quest/
 ├─ ZhuyinImeService.kt      輸入法本體與版面
 ├─ KeyboardTheme.kt         配色定義與對比度計算
-├─ KeycapArt.kt             程式繪製的鍵帽（磚塊、霓虹、竹簡、青玉）
+├─ KeycapArt.kt             程式繪製的鍵帽（磚塊、霓虹、青玉）
 ├─ KeyboardSizing.kt        面板尺寸計算
 ├─ engine/                  選字引擎（詞網格、詞庫、近音修正）
 ├─ voice/                   語音輸入（錄音、VAD、辨識、簡繁轉換）
@@ -253,8 +326,22 @@ app/src/main/res/drawable-nodpi/  青玉配色的美術素材
 
 ## 疑難排解
 
+**網頁安裝器按下去說「Must be handling a user gesture」**
+這是舊版網頁的 bug，已經修了。按 `Ctrl`+`Shift`+`R` 強制重新整理，
+等按鈕從「準備中…」變成可以按再按。
+
+**網頁安裝器選不到裝置（清單是空的）**
+三個常見原因：開發者模式沒開、頭盔上沒按「允許 USB 偵錯」、
+或是電腦上已經有 `adb` 佔住裝置。最後一種先在終端機跑 `adb kill-server`，
+瀏覽器和 `adb` 不能同時抓同一台裝置。
+
+**網頁安裝器說簽章不符**
+你裝的是開發版（debug 簽章），跟 Release 版的簽章不同，Android 不允許直接覆蓋。
+網頁會問你要不要移除舊版——同意就會自動處理，但舊版的設定會被清掉。
+
 **找不到「注音輸入法」的開關**
-標準的輸入法設定被 vrshell 攔走，要用上面那條 `am start` 指令指名開啟原生設定頁。
+標準的輸入法設定被 vrshell 攔走。在 App 裡按「開啟鍵盤設定」，
+或用上面那條 `am start` 指令指名開啟原生設定頁。
 
 **鍵盤變成很寬的一條**
 輸入法面板尺寸由系統決定，而且**會變**。量過 780×355，頭盔重開機後同一個系統版本
